@@ -92,5 +92,4 @@ catch (FormatException ex)
 ## License
 This project is licensed under the MIT License - see the LICENSE.TXT file for details.
 ------------------------------
-Would you like me to add a Benchmark section showing the speed difference between AES-GCM and Speck?
 
