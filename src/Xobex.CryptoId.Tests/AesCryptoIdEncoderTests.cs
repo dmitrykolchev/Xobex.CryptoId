@@ -191,7 +191,9 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
 
     [TestMethod]
     [Description("Encode-Decode with all edge case values")]
+#pragma warning disable MSTEST0052 // Avoid passing an explicit 'DynamicDataSourceType' and use the default auto detect behavior
     [DynamicData(nameof(GetLongTestValuesData), DynamicDataSourceType.Method)]
+#pragma warning restore MSTEST0052 // Avoid passing an explicit 'DynamicDataSourceType' and use the default auto detect behavior
     public void EncodeDecodeRoundTrip_WithEdgeCaseValues(long value)
     {
         // Arrange

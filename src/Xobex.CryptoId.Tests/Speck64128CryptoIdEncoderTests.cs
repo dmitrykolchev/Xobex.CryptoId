@@ -278,8 +278,6 @@ public class Speck64128CryptoIdEncoderTests : CryptoIdTestBase
     [Description("Should work with very large long values")]
     [DataRow(long.MaxValue)]
     [DataRow(long.MinValue)]
-    [DataRow(9223372036854775807L)]
-    [DataRow(-9223372036854775808L)]
     public void Encode_WithExtremeLongValues_Succeeds(long value)
     {
         // Arrange
