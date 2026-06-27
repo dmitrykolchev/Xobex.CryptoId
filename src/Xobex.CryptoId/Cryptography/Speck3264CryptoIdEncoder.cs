@@ -232,6 +232,14 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
             BinaryPrimitives.WriteUInt16LittleEndian(plaintext.Slice(2, 2), y);
         }
 
+        /// <summary>
+        /// Performs a left rotation (circular left shift) on a 16-bit value.
+        /// </summary>
+        /// <param name="v">The value to rotate.</param>
+        /// <param name="n">The number of bit positions to rotate left.</param>
+        /// <returns>The rotated value, masked to 16 bits.</returns>
+        /// <remarks>Cannot use BitOperations.RotateLeft while rotating ushort</remarks>
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint RotL(uint v, int n)
         {
@@ -244,6 +252,7 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
         /// <param name="v">The value to rotate.</param>
         /// <param name="n">The number of bit positions to rotate right.</param>
         /// <returns>The rotated value, masked to 16 bits.</returns>
+        /// <remarks>Cannot use BitOperations.RotateRight while rotating ushort</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint RotR(uint v, int n)
         {
