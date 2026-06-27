@@ -5,6 +5,7 @@
 
 using System.Buffers.Binary;
 using System.Buffers.Text;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -195,8 +196,8 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
             //   k[i + 1]     = rotl(k[i], β) ⊕ l[i + m - 1]
             for (var i = 0; i < Rounds - 1; i++)
             {
-                l[i + KeyWords - 1] = (RotR(l[i], Alpha) + _roundKeys[i]) ^ (uint)i;
-                _roundKeys[i + 1] = RotL(_roundKeys[i], Beta) ^ l[i + KeyWords - 1];
+                l[i + KeyWords - 1] = (BitOperations.RotateRight(l[i], Alpha) + _roundKeys[i]) ^ (uint)i;
+                _roundKeys[i + 1] = BitOperations.RotateLeft(_roundKeys[i], Beta) ^ l[i + KeyWords - 1];
             }
         }
 
@@ -219,8 +220,8 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
             //                 y = rotl(y, β) ⊕ x
             for (var i = 0; i < Rounds; i++)
             {
-                x = (RotR(x, Alpha) + y) ^ _roundKeys[i];
-                y = RotL(y, Beta) ^ x;
+                x = (BitOperations.RotateRight(x, Alpha) + y) ^ _roundKeys[i];
+                y = BitOperations.RotateLeft(y, Beta) ^ x;
             }
 
             BinaryPrimitives.WriteUInt32LittleEndian(ciphertext[..4], x);
@@ -243,30 +244,12 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
             // Inverse of round function in reverse order of rounds
             for (var i = Rounds - 1; i >= 0; i--)
             {
-                y = RotR(x ^ y, Beta);
-                x = RotL((x ^ _roundKeys[i]) - y, Alpha);
+                y = BitOperations.RotateRight(x ^ y, Beta);
+                x = BitOperations.RotateLeft((x ^ _roundKeys[i]) - y, Alpha);
             }
 
             BinaryPrimitives.WriteUInt32LittleEndian(plaintext[..4], x);
             BinaryPrimitives.WriteUInt32LittleEndian(plaintext.Slice(4, 4), y);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint RotL(uint v, int n)
-        {
-            return (v << n) | (v >> (WordBits - n));
-        }
-
-        /// <summary>
-        /// Performs a right rotation (circular right shift) on a 32-bit value.
-        /// </summary>
-        /// <param name="v">The value to rotate.</param>
-        /// <param name="n">The number of bit positions to rotate right.</param>
-        /// <returns>The rotated value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint RotR(uint v, int n)
-        {
-            return (v >> n) | (v << (WordBits - n));
         }
 
         /// <summary>

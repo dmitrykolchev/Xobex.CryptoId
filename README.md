@@ -107,9 +107,9 @@ Intel Core i7-10700KF CPU 3.80GHz (Max: 3.79GHz), 1 CPU, 16 logical and 8 physic
 ```
 | Method             | Mean      | Error    | StdDev   | Ratio | Gen0   | Allocated | Alloc Ratio |
 |------------------- |----------:|---------:|---------:|------:|-------:|----------:|------------:|
-| Encode_AesGcm      | 278.65 ns | 1.242 ns | 1.161 ns |  1.00 | 0.0143 |     120 B |        1.00 |
-| Encode_Speck64_128 |  32.20 ns | 0.159 ns | 0.133 ns |  0.12 | 0.0057 |      48 B |        0.40 |
-| Encode_Speck32_64  |  43.61 ns | 0.193 ns | 0.161 ns |  0.16 | 0.0048 |      40 B |        0.33 |
-| Decode_AesGcm      | 187.82 ns | 0.550 ns | 0.488 ns |  0.67 |      - |         - |        0.00 |
-| Decode_Speck64_128 |  43.22 ns | 0.131 ns | 0.110 ns |  0.16 |      - |         - |        0.00 |
-| Decode_Speck32_64  |  61.79 ns | 0.039 ns | 0.033 ns |  0.22 |      - |         - |        0.00 |
+| Encode_AesGcm      | 273.94 ns | 1.699 ns | 1.506 ns |  1.00 | 0.0143 |     120 B |        1.00 |
+| Encode_Speck64_128 |  32.82 ns | 0.104 ns | 0.087 ns |  0.12 | 0.0057 |      48 B |        0.40 |
+| Encode_Speck32_64  |  34.29 ns | 0.151 ns | 0.134 ns |  0.13 | 0.0048 |      40 B |        0.33 |
+| Decode_AesGcm      | 186.09 ns | 0.404 ns | 0.337 ns |  0.68 |      - |         - |        0.00 |
+| Decode_Speck64_128 |  42.88 ns | 0.042 ns | 0.037 ns |  0.16 |      - |         - |        0.00 |
+| Decode_Speck32_64  |  51.59 ns | 0.092 ns | 0.077 ns |  0.19 |      - |         - |        0.00 |

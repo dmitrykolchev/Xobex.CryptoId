@@ -5,6 +5,7 @@
 
 using System.Buffers.Binary;
 using System.Buffers.Text;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -181,8 +182,8 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
             // Arithmetic is performed in uint, result is truncated to 16 bits via Mask16
             for (var i = 0; i < Rounds - 1; i++)
             {
-                l[i + KeyWords - 1] = (ushort)(((RotR(l[i], Alpha) + _roundKeys[i]) & Mask16) ^ (uint)i);
-                _roundKeys[i + 1] = (ushort)(RotL(_roundKeys[i], Beta) ^ l[i + KeyWords - 1]);
+                l[i + KeyWords - 1] = (ushort)(((BitOperations.RotateRight(l[i], Alpha) + _roundKeys[i]) & Mask16) ^ (uint)i);
+                _roundKeys[i + 1] = (ushort)(BitOperations.RotateLeft(_roundKeys[i], Beta) ^ l[i + KeyWords - 1]);
             }
         }
 
@@ -201,8 +202,8 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
 
             for (var i = 0; i < Rounds; i++)
             {
-                x = (ushort)(((RotR(x, Alpha) + y) & Mask16) ^ _roundKeys[i]);
-                y = (ushort)(RotL(y, Beta) ^ x);
+                x = (ushort)(((BitOperations.RotateRight(x, Alpha) + y) & Mask16) ^ _roundKeys[i]);
+                y = (ushort)(BitOperations.RotateLeft(y, Beta) ^ x);
             }
 
             BinaryPrimitives.WriteUInt16LittleEndian(ciphertext[..2], x);
@@ -224,30 +225,12 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
 
             for (var i = Rounds - 1; i >= 0; i--)
             {
-                y = (ushort)(RotR((uint)(x ^ y), Beta) & Mask16);
-                x = (ushort)(RotL(((uint)(x ^ _roundKeys[i]) - y) & Mask16, Alpha) & Mask16);
+                y = (ushort)(BitOperations.RotateRight((uint)(x ^ y), Beta) & Mask16);
+                x = (ushort)(BitOperations.RotateLeft(((uint)(x ^ _roundKeys[i]) - y) & Mask16, Alpha) & Mask16);
             }
 
             BinaryPrimitives.WriteUInt16LittleEndian(plaintext[..2], x);
             BinaryPrimitives.WriteUInt16LittleEndian(plaintext.Slice(2, 2), y);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint RotL(uint v, int n)
-        {
-            return ((v << n) | (v >> (WordBits - n))) & Mask16;
-        }
-
-        /// <summary>
-        /// Performs a right rotation (circular right shift) on a 16-bit value.
-        /// </summary>
-        /// <param name="v">The value to rotate.</param>
-        /// <param name="n">The number of bit positions to rotate right.</param>
-        /// <returns>The rotated value, masked to 16 bits.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint RotR(uint v, int n)
-        {
-            return ((v >> n) | (v << (WordBits - n))) & Mask16;
         }
 
         /// <summary>
