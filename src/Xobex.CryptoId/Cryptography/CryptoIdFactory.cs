@@ -10,7 +10,7 @@ namespace Xobex.Cryptography;
 /// <summary>
 /// Specifies the cryptographic algorithm used for encoding and decoding identifiers.
 /// </summary>
-public enum IdCiperAlgorithm
+public enum IdCipherAlgorithm
 {
     /// <summary>
     /// AES-GCM (Advanced Encryption Standard with Galois/Counter Mode).
@@ -68,7 +68,7 @@ public class CryptoIdFactory
     /// <exception cref="NotSupportedException">
     /// Thrown when <typeparamref name="T"/> is not a supported type (must be <see cref="long"/> or <see cref="int"/>).
     /// </exception>
-    public static ICryptoIdEncoder<T> Create<T>(IdCiperAlgorithm algorithm, string key, byte[]? salt = null)
+    public static ICryptoIdEncoder<T> Create<T>(IdCipherAlgorithm algorithm, string key, byte[]? salt = null)
         where T : struct
     {
         object result;
@@ -76,8 +76,8 @@ public class CryptoIdFactory
         {
             result = algorithm switch
             {
-                IdCiperAlgorithm.AesGcm => new AesCryptoIdEncoder(key, salt ?? DefaultSalt),
-                IdCiperAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt ?? DefaultSalt),
+                IdCipherAlgorithm.AesGcm => new AesCryptoIdEncoder(key, salt ?? DefaultSalt),
+                IdCipherAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt ?? DefaultSalt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
         }
@@ -85,7 +85,7 @@ public class CryptoIdFactory
         {
             result = algorithm switch
             {
-                IdCiperAlgorithm.Speck32_64 => new Speck3264CryptoIdEncoder(key, salt ?? DefaultSalt),
+                IdCipherAlgorithm.Speck32_64 => new Speck3264CryptoIdEncoder(key, salt ?? DefaultSalt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
         }

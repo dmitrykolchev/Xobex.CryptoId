@@ -28,9 +28,9 @@ public class CryptoIdEncoderBenchmark
     public void Setup()
     {
         // Initialize Encoders
-        _encoder1 =  CryptoIdFactory.Create<long>(IdCiperAlgorithm.AesGcm, "Hello World!");
-        _encoder2 = CryptoIdFactory.Create<long>(IdCiperAlgorithm.Speck64_128, "Hello World!");
-        _encoder3 = CryptoIdFactory.Create<int>(IdCiperAlgorithm.Speck32_64, "Hello World!");
+        _encoder1 =  CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "Hello World!");
+        _encoder2 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "Hello World!");
+        _encoder3 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "Hello World!");
 
         // Generate strings for decode
         _encodedString1 = _encoder1.Encode(Int64Id);
