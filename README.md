@@ -54,7 +54,7 @@ Recommended for public-facing web APIs where maximum cryptographic strength is r
 ```csharp
 using Xobex.CryptoId;
 // Initialize the encoder with a secure 32-byte key
-ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "your secret phrase");;
+ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "your secret phrase");
 long originalId = 42026;
 // Encrypt the ID to a URL-safe Base64 string
 string encodedToken = encoder.Encode(originalId); 
@@ -74,7 +74,7 @@ ICryptoIdEncoder<long> speckEncoder = CryptoIdFactory.Create<long>(IdCipherAlgor
 long databaseId = 987654321;
 // Extremely fast encryption and URL-safe encoding
 string encodedToken = speckEncoder.Encode(databaseId);
-// Fast decryptionlong
+// Fast decryption
 long restoredId = speckEncoder.Decode(encodedToken);
 ```
 ------------------------------
@@ -97,7 +97,7 @@ catch (FormatException ex)
 This project is licensed under the MIT License - see the LICENSE.TXT file for details.
 ------------------------------
 
-## Benchamrk Results
+## Benchmark Results
 
 ```
 
