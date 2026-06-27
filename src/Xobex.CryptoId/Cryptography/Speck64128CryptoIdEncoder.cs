@@ -49,11 +49,6 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "Speck64-128 ID encryption v1"u8.ToArray();
 
-    // 16-byte static salt, unique to your application.
-    // In production, replace this with a cryptographically random value,
-    // stored in configuration (not in code).
-
-
     private readonly Speck64128 _cipher;
 
     /// <summary>
