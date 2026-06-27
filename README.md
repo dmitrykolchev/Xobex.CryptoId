@@ -1,6 +1,6 @@
 ## Xobex.CryptoId: Secure and Lightweight ID Encryption for .NET
 
-Xobex.CryptoId is a high-performance .NET library designed to protect your database identifiers from enumeration attacks by encrypting sequential IDs into secure, URL-safe obfuscated tokens.
+Xobex.CryptoId is a high-performance .NET library designed to protect your database identifiers from enumeration attacks by encrypting sequential IDs into secure, URL-safe obfuscated tokens. In simple words Xobex.CryptoId is reversible ID obfuscator.
 
 <img width="630" height="181" alt="image" src="https://github.com/user-attachments/assets/d696c528-6fa1-4809-b196-ce1dacf883bd" />
 
@@ -54,7 +54,7 @@ Recommended for public-facing web APIs where maximum cryptographic strength is r
 ```csharp
 using Xobex.CryptoId;
 // Initialize the encoder with a secure 32-byte key
-ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCiperAlgorithm.AesGcm, "your secret phrase");;
+ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "your secret phrase");;
 long originalId = 42026;
 // Encrypt the ID to a URL-safe Base64 string
 string encodedToken = encoder.Encode(originalId); 
@@ -70,7 +70,7 @@ Recommended for internal microservices, high-throughput systems, or scenarios re
 ```csharp
 using Xobex.CryptoId;
 // Initialize Speck-64/128 (16-byte key) for 64-bit long ID;
-ICryptoIdEncoder<long> speckEncoder = CryptoIdFactory.Create<long>(IdCiperAlgorithm.Speck64_128, "your secret phrase");
+ICryptoIdEncoder<long> speckEncoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "your secret phrase");
 long databaseId = 987654321;
 // Extremely fast encryption and URL-safe encoding
 string encodedToken = speckEncoder.Encode(databaseId);
