@@ -52,9 +52,11 @@ using Xobex.CryptoId;
 // Initialize the encoder with a secure 32-byte key
 ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCiperAlgorithm.AesGcm, "your secret phrase");;
 long originalId = 42026;
-// Encrypt the ID to a URL-safe Base64 stringstring encodedToken = encoder.Encode(originalId); 
+// Encrypt the ID to a URL-safe Base64 string
+string encodedToken = encoder.Encode(originalId); 
 Console.WriteLine($"Encoded: {encodedToken}"); // Output looks like: "A3fG...8x"
-// Decrypt back to the original ID using ReadOnlySpan<char>long decodedId = encoder.Decode(encodedToken);
+// Decrypt back to the original ID using ReadOnlySpan<char>
+long decodedId = encoder.Decode(encodedToken);
 Console.WriteLine($"Decoded: {decodedId}"); // Output: 42026
 ```
 
@@ -66,8 +68,10 @@ using Xobex.CryptoId;
 // Initialize Speck-64/128 (16-byte key) for 64-bit long ID;
 ICryptoIdEncoder<long> speckEncoder = CryptoIdFactory.Create<long>(IdCiperAlgorithm.Speck64_128, "your secret phrase");
 long databaseId = 987654321;
-// Extremely fast encryption and URL-safe encodingstring encodedToken = speckEncoder.Encode(databaseId);
-// Fast decryptionlong restoredId = speckEncoder.Decode(encodedToken);
+// Extremely fast encryption and URL-safe encoding
+string encodedToken = speckEncoder.Encode(databaseId);
+// Fast decryptionlong
+long restoredId = speckEncoder.Decode(encodedToken);
 ```
 ------------------------------
 ## Error Handling
@@ -77,7 +81,8 @@ The Decode method throws a FormatException if the provided string is not valid U
 try
 {
     long id = encoder.Decode("invalid_token_here");
-}catch (FormatException ex)
+}
+catch (FormatException ex)
 {
     // Handle invalid token or tampering attempt
     logger.LogWarning("Failed to decode identifier: " + ex.Message);
@@ -87,5 +92,4 @@ try
 ## License
 This project is licensed under the MIT License - see the LICENSE.TXT file for details.
 ------------------------------
-Would you like me to add a Benchmark section showing the speed difference between AES-GCM and Speck?
 
