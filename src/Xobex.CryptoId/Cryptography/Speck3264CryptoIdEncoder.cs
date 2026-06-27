@@ -62,7 +62,7 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
 
-        // HKDF-SHA256: 8 байт для Speck32/64 (4 слова × 2 байта)
+        // HKDF-SHA256: 8 bytes for Speck32/64 (4 words × 2 bytes)
         var keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: Encoding.UTF8.GetBytes(key),
@@ -90,7 +90,7 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
     /// <summary>
     /// Decodes Base64Url and decrypts to int.
     /// </summary>
-    /// <exception cref="FormatException">Неверный формат Base64Url.</exception>
+    /// <exception cref="FormatException">Invalid Base64Url format.</exception>
     public int Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         Span<byte> ciphertext = stackalloc byte[sizeof(int)];
@@ -100,7 +100,7 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
             || bytesWritten != sizeof(int))
         {
             throw new FormatException(
-                $"Неверный формат Base64Url: ожидается {sizeof(int)} байт после декодирования.");
+                $"Invalid Base64Url format: expected {sizeof(int)} bytes after decoding.");
         }
 
         _cipher.Decrypt(ciphertext, plaintext);
@@ -255,7 +255,7 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
         {
             if (input.Length != sizeof(int) || output.Length != sizeof(int))
             {
-                throw new ArgumentException("Размер буферов должен быть ровно 4 байта.");
+                throw new ArgumentException("The size of the buffers must be exactly 4 bytes.");
             }
         }
     }

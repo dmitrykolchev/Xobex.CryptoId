@@ -70,7 +70,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
 
-        // HKDF-SHA256: ikm → 16-байтный ключ для Speck64/128
+        // HKDF-SHA256: ikm → 16-bytes key for Speck64/128
         // Unlike MD5: cryptographically secure, domain-separated, without collision vulnerabilities
         var keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
@@ -155,7 +155,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         private const int Beta = 3;   // left rotation for y in encrypt
 
         // Specification: key schedule uses linear array l[0..T+m-3]
-        // m=4 → l размером Rounds + m - 2 = 29
+        // m=4 → l size is Rounds + m - 2 = 29
         private const int KeyWords = 4;
         private const int LLength = Rounds + KeyWords - 2; // 29
 
@@ -181,7 +181,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
             var k2 = BinaryPrimitives.ReadUInt32LittleEndian(key.Slice(8, 4));
             var k3 = BinaryPrimitives.ReadUInt32LittleEndian(key.Slice(12, 4));
 
-            // l — линейный массив, НЕ кольцевой буфер
+            // l — array, not ring buffer
             // Initialization: l[0] = k1, l[1] = k2, l[2] = k3
             Span<uint> l = stackalloc uint[LLength];
             l[0] = k1;
@@ -190,7 +190,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
 
             _roundKeys[0] = k0;
 
-            // Key schedule (спецификация, Algorithm 3):
+            // Key schedule (spec, Algorithm 3):
             //   l[i + m - 1] = (rotr(l[i], α) + k[i]) ⊕ i
             //   k[i + 1]     = rotl(k[i], β) ⊕ l[i + m - 1]
             for (var i = 0; i < Rounds - 1; i++)
@@ -210,7 +210,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         {
             ValidateBuffers(plaintext, ciphertext);
 
-            // Speck: блок = (x, y), x — левое слово (старшее), y — правое
+            // Speck: block = (x, y), x — left word (hi), y — right
             // plaintext[0..3] → x, plaintext[4..7] → y
             var x = BinaryPrimitives.ReadUInt32LittleEndian(plaintext[..4]);
             var y = BinaryPrimitives.ReadUInt32LittleEndian(plaintext.Slice(4, 4));
@@ -280,7 +280,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         {
             if (input.Length != sizeof(long) || output.Length != sizeof(long))
             {
-                throw new ArgumentException("Размер буферов должен быть ровно 8 байт.");
+                throw new ArgumentException("The size of the buffers must be exactly 8 bytes.");
             }
         }
     }

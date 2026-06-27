@@ -139,7 +139,7 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
         // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
         if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != totalSize)
         {
-            throw new FormatException($"Неверный формат Base64Url: ожидается {totalSize} байт после декодирования.");
+            throw new FormatException($"Invalid Base64Url format: expected {totalSize} bytes after decoding.");
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];
