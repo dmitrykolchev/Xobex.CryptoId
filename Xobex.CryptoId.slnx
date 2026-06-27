@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Xobex.CryptoId.Tests/Xobex.CryptoId.Tests.csproj" />
+  <Project Path="src/Xobex.CryptoId/Xobex.CryptoId.csproj" />
+</Solution>
