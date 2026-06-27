@@ -128,7 +128,12 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
         // This creates exactly one string allocation
         return Base64Url.EncodeToString(buffer);
     }
-
+    /// <summary>
+    /// Decrypts text to long id
+    /// </summary>
+    /// <param name="text">encrypted id</param>
+    /// <returns>decrypted id</returns>
+    /// <exception cref="FormatException">Invalid Base64Url format</exception>
     public long Decode(ReadOnlySpan<char> text)
     {
         const int ciphertextSize = sizeof(long);

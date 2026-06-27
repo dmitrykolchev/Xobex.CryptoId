@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Xobex</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Dmitry Kolchev</Authors>
     <Description>A small library that allows you to generate encrypted text for numbers that are sequential identifiers. This library uses Speck-32/64, Speck-64/128 and AesGcm algorithms</Description>
     <Copyright>Dmitry Kolchev</Copyright>
@@ -14,6 +15,10 @@
     <RepositoryUrl>https://github.com/dmitrykolchev/Xobex.CryptoId</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+	<PackageTags>$(PackageTags);Cryptography;Database</PackageTags>
+	<Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

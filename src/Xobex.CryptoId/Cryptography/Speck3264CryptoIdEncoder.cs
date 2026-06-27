@@ -186,6 +186,12 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
             }
         }
 
+        /// <summary>
+        /// Encrypts a 32-bit block (4 bytes) using the Speck32/64 algorithm.
+        /// </summary>
+        /// <param name="plaintext">The 4-byte plaintext block.</param>
+        /// <param name="ciphertext">The output buffer for the 4-byte ciphertext block.</param>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are not exactly 4 bytes.</exception>
         public void Encrypt(ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
         {
             ValidateBuffers(plaintext, ciphertext);
