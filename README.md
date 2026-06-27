@@ -1,5 +1,9 @@
 ## Xobex.CryptoId: Secure and Lightweight ID Encryption for .NET
+
 Xobex.CryptoId is a high-performance .NET library designed to protect your database identifiers from enumeration attacks by encrypting sequential IDs into secure, URL-safe obfuscated tokens.
+
+<img width="630" height="181" alt="image" src="https://github.com/user-attachments/assets/d696c528-6fa1-4809-b196-ce1dacf883bd" />
+
 ## Key Features
 
 * Unified API: Implements a strict, generic contract for type-safe ID encoding and decoding.
