@@ -13,7 +13,7 @@ Xobex.CryptoId is a high-performance .NET library designed to protect your datab
 * URL-Safe Output: Automatically converts encrypted IDs to and from URL-safe Base64 strings.
 * Allocation Optimized: Uses modern .NET memory primitives like ReadOnlySpan<char> to minimize allocations during decoding.
 
-## Skip32, Speck-32/64, Speck-64/128
+## Skip32, Speck-32/64, Speck-64/128 Notes
 Use only for obfuscation of sequential IDs in public URLs/APIs.
 
 > Do not use for cryptographic protection!
