@@ -135,7 +135,7 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
     /// Reference: NSA Speck specification (https://eprint.iacr.org/2013/404.pdf), Algorithm 3
     /// </para>
     /// </remarks>
-    public sealed class Speck32_64
+    internal sealed class Speck32_64
     {
         private const int Rounds = 22;
         private const int WordBits = 16;

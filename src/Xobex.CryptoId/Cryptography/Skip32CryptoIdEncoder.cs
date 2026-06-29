@@ -14,7 +14,7 @@ namespace Xobex.Cryptography;
 /// <summary>
 /// Provides Skip32 lightweight block cipher encryption for encoding and decoding 32-bit (int) identifiers.
 /// </summary>
-public class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>
+public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>
 {
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "Skip32 ID encryption v1"u8.ToArray();

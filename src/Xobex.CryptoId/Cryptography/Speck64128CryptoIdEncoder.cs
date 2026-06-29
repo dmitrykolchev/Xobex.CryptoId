@@ -50,7 +50,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "Speck64-128 ID encryption v1"u8.ToArray();
 
-    private readonly Speck64128 _cipher;
+    private readonly Speck64_128 _cipher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Speck64128CryptoIdEncoder"/> class.
@@ -80,7 +80,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
             salt: salt,
             info: HkdfInfo);
 
-        _cipher = new Speck64128(keyMaterial);
+        _cipher = new Speck64_128(keyMaterial);
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
     /// Reference: NSA Speck specification (https://eprint.iacr.org/2013/404.pdf), Algorithm 3
     /// </para>
     /// </remarks>
-    public sealed class Speck64128
+    internal sealed class Speck64_128
     {
         private const int Rounds = 27;
         private const int Alpha = 8;    // right rotation for x in encrypt
@@ -162,11 +162,11 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         private readonly uint[] _roundKeys = new uint[Rounds];
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Speck64128"/> cipher.
+        /// Initializes a new instance of the <see cref="Speck64_128"/> cipher.
         /// </summary>
         /// <param name="key">The 16-byte (128-bit) encryption key.</param>
         /// <exception cref="ArgumentException">Thrown when key length is not exactly 16 bytes.</exception>
-        public Speck64128(ReadOnlySpan<byte> key)
+        public Speck64_128(ReadOnlySpan<byte> key)
         {
             if (key.Length != 16)
             {

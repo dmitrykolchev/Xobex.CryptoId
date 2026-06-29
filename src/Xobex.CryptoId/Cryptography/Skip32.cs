@@ -42,8 +42,9 @@ internal sealed class Skip32
     ];
 
     private const int Rounds = 24;
+    private const int KeyLength = 10;
 
-    [InlineArray(10)]
+    [InlineArray(KeyLength)]
     private struct KeyBuffer { private byte _element0; }
 
     private readonly KeyBuffer _key;
@@ -64,9 +65,9 @@ internal sealed class Skip32
     /// <param name="key">Key: exactly 10 bytes (80 bits)</param>
     public Skip32(ReadOnlySpan<byte> key)
     {
-        if (key.Length != 10)
+        if (key.Length != KeyLength)
         {
-            throw new ArgumentException("Ключ Skip32 должен состоять ровно из 10 байт.", nameof(key));
+            throw new ArgumentException($"Ключ Skip32 должен состоять ровно из {KeyLength} байт.", nameof(key));
         }
         key.CopyTo(_key);
     }
