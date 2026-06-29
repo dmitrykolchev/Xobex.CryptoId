@@ -56,7 +56,64 @@ dotnet add package Xobex.CryptoId
 ```
 
 ------------------------------
-## Quick Start## 1. High-Security ID Masking (AES-GCM)
+## Quick Start
+
+### Adding to the DI container
+
+```csharp
+    builder.Services.AddSingleton<ICryptoIdEncoder<int>>(serviceProvider =>
+    {
+        return CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "my_strong_secret");
+    });
+```
+
+### Encoding database IDs
+
+```csharp
+public sealed class LibraryDataService : DataServiceBase
+{
+    private readonly ICryptoIdEncoder<int> _int32encoder;
+
+    public LibraryDataService(PhotoDbContextBase context, ICryptoIdEncoder<int> int32encoder) : base(context)
+    {
+        ArgumentNullException.ThrowIfNull(int32encoder);
+        _int32encoder = int32encoder;
+    }
+
+    public async Task<List<LibraryViewEntry>> GetLibrariesAsync(CancellationToken cancellation = default)
+    {
+        var query = from item in Context.Library.AsNoTracking()
+                    select new LibraryViewEntry()
+                    {
+                        Id = _int32encoder.Encode(item.Id),
+                        State = item.State,
+                        Name = item.Name,
+                        Path = item.Path,
+                        LastScanDate = item.LastScanDate,
+                        Created = item.Created,
+                        Modified = item.Modified,
+                        ImageCount = item.Image.Count
+                    };
+
+        return await query.ToListAsync(cancellation).ConfigureAwait(false);
+    }
+    ...
+```
+
+### Decoding database IDs
+
+```csharp
+    public async Task<LibraryViewEntry> UpdateLibraryAsync(string id, UpdateLibraryRequest request, CancellationToken cancellation = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(request.Name);
+        var nId = _int32encoder.Decode(id);
+        var found = await Context.Library.SingleAsync(t => t.Id == nId, cancellation).ConfigureAwait(false);
+        ...
+```
+
+
+## 1. High-Security ID Masking (AES-GCM)
 Recommended for public-facing web APIs where maximum cryptographic strength is required.
 
 ```csharp
