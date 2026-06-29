@@ -28,7 +28,13 @@ public enum IdCipherAlgorithm
     /// Speck 64/128 lightweight block cipher.
     /// Suitable for encrypting 64-bit (long) identifiers.
     /// </summary>
-    Speck64_128
+    Speck64_128,
+
+    /// <summary>
+    /// Skip 32 lightweight block cipher.
+    /// Suitable for encrypting 32-bit (int) identifiers.
+    /// </summary>
+    Skip32
 }
 
 /// <summary>
@@ -86,6 +92,7 @@ public class CryptoIdFactory
             result = algorithm switch
             {
                 IdCipherAlgorithm.Speck32_64 => new Speck3264CryptoIdEncoder(key, salt ?? DefaultSalt),
+                IdCipherAlgorithm.Skip32 => new Skip32CryptoIdEncoder(key, salt ?? DefaultSalt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
         }
