@@ -9,8 +9,15 @@ Xobex.CryptoId is a high-performance .NET library designed to protect your datab
 * Unified API: Implements a strict, generic contract for type-safe ID encoding and decoding.
 * Advanced Encryption Standard: Uses AES-GCM for maximum cryptographic security.
 * Lightweight Ciphers: Implements Speck-32/64 and Speck-64/128 for ultra-fast, low-overhead obfuscation.
+* Low latency Skip32 obfuscator
 * URL-Safe Output: Automatically converts encrypted IDs to and from URL-safe Base64 strings.
 * Allocation Optimized: Uses modern .NET memory primitives like ReadOnlySpan<char> to minimize allocations during decoding.
+
+## Skip32, Speck-32/64, Speck-64/128
+Use only for obfuscation of sequential IDs in public URLs/APIs.
+
+> Do not use for cryptographic protection!
+
 
 ------------------------------
 ## Supported Ciphers
@@ -20,6 +27,7 @@ Xobex.CryptoId is a high-performance .NET library designed to protect your datab
 | AES-GCM | 256-bit | 128-bit | int, long, etc. | High-security environments, web tokens, sensitive data. |
 | Speck-64/128 | 128-bit | 64-bit | long, ulong | Balanced speed and security for standard 64-bit integer IDs. |
 | Speck-32/64 | 64-bit | 32-bit | int, uint, short | Ultra-low latency, tiny payloads, 32-bit integer IDs. |
+| Skip32 | 80-bit | 32-bit | int, uint, short | Low latency, tiny payloads, 32-bit integer IDs. |
 
 ------------------------------
 ## Core Abstraction
@@ -111,9 +119,11 @@ Intel Core i7-10700KF CPU 3.80GHz (Max: 3.79GHz), 1 CPU, 16 logical and 8 physic
 ```
 | Method             | Mean      | Error    | StdDev   | Ratio | Gen0   | Allocated | Alloc Ratio |
 |------------------- |----------:|---------:|---------:|------:|-------:|----------:|------------:|
-| Encode_AesGcm      | 278.65 ns | 1.242 ns | 1.161 ns |  1.00 | 0.0143 |     120 B |        1.00 |
-| Encode_Speck64_128 |  32.20 ns | 0.159 ns | 0.133 ns |  0.12 | 0.0057 |      48 B |        0.40 |
-| Encode_Speck32_64  |  43.61 ns | 0.193 ns | 0.161 ns |  0.16 | 0.0048 |      40 B |        0.33 |
-| Decode_AesGcm      | 187.82 ns | 0.550 ns | 0.488 ns |  0.67 |      - |         - |        0.00 |
-| Decode_Speck64_128 |  43.22 ns | 0.131 ns | 0.110 ns |  0.16 |      - |         - |        0.00 |
-| Decode_Speck32_64  |  61.79 ns | 0.039 ns | 0.033 ns |  0.22 |      - |         - |        0.00 |
+| Encode_AesGcm      | 270.88 ns | 1.214 ns | 1.076 ns |  1.00 | 0.0143 |     120 B |        1.00 |
+| Encode_Speck64_128 |  32.06 ns | 0.107 ns | 0.100 ns |  0.12 | 0.0057 |      48 B |        0.40 |
+| Encode_Speck32_64  |  39.37 ns | 0.205 ns | 0.171 ns |  0.15 | 0.0048 |      40 B |        0.33 |
+| Encode_Skip32      | 194.34 ns | 1.024 ns | 0.958 ns |  0.72 | 0.0048 |      40 B |        0.33 |
+| Decode_AesGcm      | 187.59 ns | 1.643 ns | 1.457 ns |  0.69 |      - |         - |        0.00 |
+| Decode_Speck64_128 |  43.04 ns | 0.133 ns | 0.111 ns |  0.16 |      - |         - |        0.00 |
+| Decode_Speck32_64  |  62.31 ns | 0.253 ns | 0.236 ns |  0.23 |      - |         - |        0.00 |
+| Decode_Skip32      | 197.91 ns | 1.893 ns | 1.771 ns |  0.73 |      - |         - |        0.00 |

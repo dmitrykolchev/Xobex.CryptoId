@@ -61,7 +61,7 @@ internal sealed class Skip32
         }
     }
 
-    /// <param name="key">Ключ: ровно 10 байт (80 бит)</param>
+    /// <param name="key">Key: exactly 10 bytes (80 bits)</param>
     public Skip32(ReadOnlySpan<byte> key)
     {
         if (key.Length != 10)
