@@ -8,18 +8,18 @@ using System.Runtime.CompilerServices;
 namespace Xobex.Cryptography;
 
 /// <summary>
-/// Skip32 — 32-битный блочный шифр (Format-Preserving Encryption: uint32 → uint32).
-/// Реализует алгоритм Unruh (1998) на основе F-таблицы Skipjack (NSA, 1998).
+/// Skip32 is a 32-bit block cipher (Format-Preserving Encryption: uint32 → uint32).
+/// Implements the Unruh algorithm (1998) based on the Skipjack F-table (NSA, 1998).
 ///
-/// Применение: обфускация последовательных ID в публичных URL/API.
-/// Не использовать для криптографической защиты — 32-битный блок уязвим
-/// к birthday attack при ~2^16 зашифрованных значениях.
+/// Usage: obfuscation of sequential IDs in public URLs/APIs.
+/// Do not use for cryptographic protection - a 32-bit block is vulnerable
+/// to a birthday attack with ~2^16 encrypted values.
 /// </summary>
 internal sealed class Skip32
 {
     /// <summary>
-    /// Каноническая F-таблица Skipjack (NSA, 1998).
-    /// Источник: официальная спецификация SKIPJACK.
+    /// Skipjack canonical F-table (NSA, 1998).
+    /// Source: official SKIPJACK specification.
     /// </summary>
     private static readonly byte[] FTable =
     [
@@ -72,7 +72,7 @@ internal sealed class Skip32
     }
 
     /// <summary>
-    /// Зашифровать 32-битное значение. Encrypt(Decrypt(x)) == x для любого x.
+    /// Encrypt a 32-bit value. Encrypt(Decrypt(x)) == x for any x.
     /// </summary>
     public uint Encrypt(uint value)
     {
@@ -96,7 +96,7 @@ internal sealed class Skip32
     }
 
     /// <summary>
-    /// Расшифровать 32-битное значение. Decrypt(Encrypt(x)) == x для любого x.
+    /// Decrypt a 32-bit value. Decrypt(Encrypt(x)) == x for any x.
     /// </summary>
     public uint Decrypt(uint value)
     {
@@ -120,7 +120,7 @@ internal sealed class Skip32
     }
 
     /// <summary>
-    /// G-перестановка: 16→16 бит псевдослучайная функция.
+    /// G-permutation: 16→16 bit pseudorandom function.
     ///   g3 = F[g2 ^ key[(4k+0) % 10]] ^ g1
     ///   g4 = F[g3 ^ key[(4k+1) % 10]] ^ g2
     ///   g5 = F[g4 ^ key[(4k+2) % 10]] ^ g3

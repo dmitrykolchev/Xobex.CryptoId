@@ -21,10 +21,16 @@ public class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>
     private readonly Skip32 _cipher;
 
     /// <summary>
-    /// 
+    /// Initializes a new instance of the <see cref="Skip32CryptoIdEncoder"/> class.
     /// </summary>
-    /// <param name="key"></param>
-    /// <param name="salt"></param>
+    /// <param name="key">
+    /// The cryptographic key material (e.g., password, API key, or random string).
+    /// Will be processed through HKDF-SHA256 to derive an 8-byte (64-bit) key for Speck32/64.
+    /// </param>
+    /// <param name="salt">
+    /// Salt value for HKDF key derivation. Should be a cryptographically random value
+    /// unique to your deployment. Typical length is 16 bytes.
+    /// </param>
     public Skip32CryptoIdEncoder(string key, byte[] salt)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
