@@ -30,6 +30,7 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     public Int32CryptoId() : this(0)
     {
     }
+
     /// <summary>
     /// Initializes a new instance of the Int32CryptoId struct with the specified integer value.
     /// </summary>
@@ -38,6 +39,11 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     {
         _value = value;
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the Int32CryptoId is empty (i.e., has a value of 0).
+    /// </summary>
+    public bool IsEmpty => _value == 0;
 
     /// <summary>
     /// Gets the underlying integer value of the Int32CryptoId.
@@ -99,5 +105,29 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     public override string ToString()
     {
         return _value.ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Defines the equality operator for Int32CryptoId, allowing comparison
+    /// of two instances for equality based on their underlying integer values.
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    public static bool operator ==(Int32CryptoId left, Int32CryptoId right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Defines the inequality operator for Int32CryptoId, allowing comparison
+    /// of two instances for inequality based on their underlying integer values.
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    public static bool operator !=(Int32CryptoId left, Int32CryptoId right)
+    {
+        return !left.Equals(right);
     }
 }

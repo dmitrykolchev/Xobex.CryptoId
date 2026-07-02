@@ -40,6 +40,11 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     }
 
     /// <summary>
+    /// Gets a value indicating whether the Int32CryptoId is empty (i.e., has a value of 0).
+    /// </summary>
+    public bool IsEmpty => _value == 0;
+
+    /// <summary>
     /// Gets the underlying long integer value of the Int64CryptoId.
     /// </summary>
     public long Value => _value;
@@ -99,5 +104,29 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     public override string ToString()
     {
         return _value.ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Defines the equality operator for Int64CryptoId, allowing
+    /// comparison of two Int64CryptoId instances for equality.
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    public static bool operator ==(Int64CryptoId left, Int64CryptoId right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Defines the inequality operator for Int64CryptoId, allowing comparison
+    /// of two instances for inequality based on their underlying integer values.
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    public static bool operator !=(Int64CryptoId left, Int64CryptoId right)
+    {
+        return !left.Equals(right);
     }
 }
