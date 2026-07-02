@@ -22,7 +22,7 @@
         @Html.ActionLink($"Action Link id={int32Value}", $"GetItem{index}", "Home", new { id = int32Encoder.Encode(int32Value)} )
         </p>
     }
-    @for (int index = 3; index <= 4; ++index)
+    @for (int index = 3; index <= 5; ++index)
     {
         long int64Value = Random.Shared.Next(100000);
         <p>

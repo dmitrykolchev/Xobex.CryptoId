@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Xobex.Cryptography.Abstractions;
 using Xobex.CryptoId.AspNetCore.ModelBinding;
 using Xobex.CryptoId.AspNetCore.Sample.Models;
 
@@ -39,6 +40,12 @@ public class HomeController : Controller
     public IActionResult GetItem4(Int64CryptoId id)
     {
         return Ok($"Int64CryptoId id = {id.Value}");
+    }
+
+    [HttpGet("GetItem5")]
+    public IActionResult GetItem5(string id, [FromServices] ICryptoIdEncoder<long> encoder)
+    {
+        return Ok($"string id (encoded) = {id}, long id (decoded) = {encoder.Decode(id)}");
     }
 
     public IActionResult Privacy()

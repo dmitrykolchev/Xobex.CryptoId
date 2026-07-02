@@ -47,12 +47,14 @@ Install the package via NuGet Package Manager Console:
 
 ```pwsh
 Install-Package Xobex.CryptoId
+Install-Package Xobex.CryptoId.AspNetCore
 ```
 
 Or via the .NET CLI:
 
 ```bash
 dotnet add package Xobex.CryptoId
+dotnet add package Xobex.CryptoId.AspNetCore
 ```
 
 ------------------------------
@@ -61,10 +63,9 @@ dotnet add package Xobex.CryptoId
 ### Adding to the DI container
 
 ```csharp
-    builder.Services.AddSingleton<ICryptoIdEncoder<int>>(serviceProvider =>
-    {
-        return CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "my_strong_secret");
-    });
+    var builder = WebApplication.CreateBuilder(args);
+    var cryptoIdOptions = new CryptoIdOptions();
+    builder.Services.AddCryptoId(cryptoIdOptions);
 ```
 
 ### Encoding database IDs
@@ -72,12 +73,8 @@ dotnet add package Xobex.CryptoId
 ```csharp
 public sealed class LibraryDataService : DataServiceBase
 {
-    private readonly ICryptoIdEncoder<int> _int32encoder;
-
-    public LibraryDataService(PhotoDbContextBase context, ICryptoIdEncoder<int> int32encoder) : base(context)
+    public LibraryDataService(PhotoDbContextBase context) : base(context)
     {
-        ArgumentNullException.ThrowIfNull(int32encoder);
-        _int32encoder = int32encoder;
     }
 
     public async Task<List<LibraryViewEntry>> GetLibrariesAsync(CancellationToken cancellation = default)
@@ -85,7 +82,7 @@ public sealed class LibraryDataService : DataServiceBase
         var query = from item in Context.Library.AsNoTracking()
                     select new LibraryViewEntry()
                     {
-                        Id = _int32encoder.Encode(item.Id),
+                        Id = (Int64CryptoId)item.Id,
                         State = item.State,
                         Name = item.Name,
                         Path = item.Path,
@@ -103,13 +100,27 @@ public sealed class LibraryDataService : DataServiceBase
 ### Decoding database IDs
 
 ```csharp
-    public async Task<LibraryViewEntry> UpdateLibraryAsync(string id, UpdateLibraryRequest request, CancellationToken cancellation = default)
+
+    // used implicit model binder to decode Int64CryptoId from URL-safe Base64 string
+    [HttpGet("GetItem3")]
+    public IActionResult GetItem3([ModelBinder(typeof(Int64Binder))] long id)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(request.Name);
-        var nId = _int32encoder.Decode(id);
-        var found = await Context.Library.SingleAsync(t => t.Id == nId, cancellation).ConfigureAwait(false);
-        ...
+        return Ok($"long id = {id}");
+    }
+
+    // used type specific model binder to decode Int64CryptoId from URL-safe Base64 string
+    [HttpGet("GetItem4")]
+    public IActionResult GetItem4(Int64CryptoId id)
+    {
+        return Ok($"Int64CryptoId id = {id.Value}");
+    }
+
+    // used service injection to decode Int64CryptoId from URL-safe Base64 string
+    [HttpGet("GetItem5")]
+    public IActionResult GetItem5(string id, [FromServices] ICryptoIdEncoder<long> encoder)
+    {
+        return Ok($"string id (encoded) = {id}, long id (decoded) = {encoder.Decode(id)}");
+    }
 ```
 
 
