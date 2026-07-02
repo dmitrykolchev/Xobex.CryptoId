@@ -10,6 +10,9 @@
     <Title>Secure Database ID Obfuscation Library for ASP.NET Core</Title>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>Xobex.CryptoId.AspNetCore</PackageId>
+    <Version>1.0.12</Version>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
   </PropertyGroup>
 
   <Import Project="..\Xobex.CryptoId.build.props" />
