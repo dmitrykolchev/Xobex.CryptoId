@@ -24,6 +24,13 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     private readonly long _value;
 
     /// <summary>
+    /// Initializes a new instance of the Int64CryptoId struct with a default value of 0.
+    /// </summary>
+    public Int64CryptoId() : this(0L)
+    {
+    }
+
+    /// <summary>
     /// Initializes a new instance of the Int64CryptoId struct with the specified long integer value.
     /// </summary>
     /// <param name="value"></param>

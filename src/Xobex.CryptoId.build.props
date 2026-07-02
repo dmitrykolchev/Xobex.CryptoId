@@ -10,7 +10,7 @@
       <RepositoryType>git</RepositoryType>
       <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
       <PackageTags>$(PackageTags);obfuscation;id-obfuscation;sqids;hashids;database-id;security;slug;url-shortener;encryption;data-masking;guid-alternative;entity-framework;ef-core;aspnetcore;dotnet;csharp</PackageTags>
-      <Version>1.0.10</Version>
+      <Version>1.0.11</Version>
       <AssemblyVersion>$(Version).0</AssemblyVersion>
       <FileVersion>$(Version).0</FileVersion>
       <PackageOutputPath>$(SolutionDir)packages</PackageOutputPath>

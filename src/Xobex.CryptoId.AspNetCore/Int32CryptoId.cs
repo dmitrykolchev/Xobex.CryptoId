@@ -25,6 +25,12 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     private readonly int _value;
 
     /// <summary>
+    /// Initializes a new instance of the Int32CryptoId struct with a default value of 0.
+    /// </summary>
+    public Int32CryptoId() : this(0)
+    {
+    }
+    /// <summary>
     /// Initializes a new instance of the Int32CryptoId struct with the specified integer value.
     /// </summary>
     /// <param name="value"></param>
