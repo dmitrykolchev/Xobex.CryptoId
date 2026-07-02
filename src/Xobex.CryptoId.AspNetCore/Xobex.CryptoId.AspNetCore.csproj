@@ -7,23 +7,12 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Xobex.CryptoId</RootNamespace>
     <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Authors>Dmitry Kolchev</Authors>
-    <Description>A small library that allows you to generate encrypted text for numbers that are sequential identifiers. This library uses Skip32, Speck-32/64, Speck-64/128 and AesGcm algorithms</Description>
-    <Copyright>Dmitry Kolchev</Copyright>
-    <PackageId>Xobex.CryptoId.AspNetCore</PackageId>
-    <PackageProjectUrl>https://github.com/dmitrykolchev/Xobex.CryptoId</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/dmitrykolchev/Xobex.CryptoId</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <AssemblyVersion>1.0.10.0</AssemblyVersion>
-    <FileVersion>1.0.10.0</FileVersion>
-    <PackageTags>$(PackageTags);obfuscation;id-obfuscation;sqids;hashids;database-id;security;slug;url-shortener;encryption;data-masking;guid-alternative;entity-framework;ef-core;aspnetcore;dotnet;csharp</PackageTags>
-    <Version>1.0.10</Version>
     <Title>Secure Database ID Obfuscation Library for ASP.NET Core</Title>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>Xobex.CryptoId.AspNetCore</PackageId>
   </PropertyGroup>
+
+  <Import Project="..\Xobex.CryptoId.build.props"/>
 
   <ItemGroup>
     <ProjectReference Include="..\Xobex.CryptoId\Xobex.CryptoId.csproj" />
