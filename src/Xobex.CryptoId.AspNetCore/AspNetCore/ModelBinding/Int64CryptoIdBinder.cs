@@ -1,10 +1,10 @@
-// <copyright file="Int32CryptoIdBinder.cs" company="Dmitry Kolchev">
+// <copyright file="Int64CryptoIdBinder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Xobex.Cryptography.Abstractions;
+using Xobex.CryptoId.Json.Serialization;
 
 namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 
@@ -13,18 +13,12 @@ namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 /// </summary>
 public class Int64CryptoIdBinder : IModelBinder
 {
-    private readonly ICryptoIdEncoder<long> _encoder;
-
     /// <summary>
-    /// Initializes a new instance of the Int64CryptoIdBinder class with the specified ICryptoIdEncoder&lt;long&gt;.
+    /// Gets the singleton instance of the Int64CryptoIdBinder.
     /// </summary>
-    /// <param name="encoder"></param>
-    public Int64CryptoIdBinder(ICryptoIdEncoder<long> encoder)
-    {
-        ArgumentNullException.ThrowIfNull(encoder);
-        _encoder = encoder;
-    }
+    public static readonly Int64CryptoIdBinder Instance = new();
 
+    private Int64CryptoIdBinder() { }
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into an Int64CryptoId instance.
     /// </summary>
@@ -35,7 +29,7 @@ public class Int64CryptoIdBinder : IModelBinder
         var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
         if (!string.IsNullOrEmpty(value))
         {
-            bindingContext.Result = ModelBindingResult.Success(new Int64CryptoId(_encoder.Decode(value)));
+            bindingContext.Result = ModelBindingResult.Success(new Int64CryptoId(CryptoIdRegistry.Int64Encoder.Decode(value)));
         }
         return Task.CompletedTask;
     }
@@ -46,18 +40,6 @@ public class Int64CryptoIdBinder : IModelBinder
 /// </summary>
 public class Int64Binder : IModelBinder
 {
-    private readonly ICryptoIdEncoder<long> _encoder;
-
-    /// <summary>
-    /// Initializes a new instance of the Int64Binder class with the specified ICryptoIdEncoder&lt;long&gt;.
-    /// </summary>
-    /// <param name="encoder"></param>
-    public Int64Binder(ICryptoIdEncoder<long> encoder)
-    {
-        ArgumentNullException.ThrowIfNull(encoder);
-        _encoder = encoder;
-    }
-
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into a long value.
     /// </summary>
@@ -68,7 +50,7 @@ public class Int64Binder : IModelBinder
         var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
         if (!string.IsNullOrEmpty(value))
         {
-            bindingContext.Result = ModelBindingResult.Success(_encoder.Decode(value));
+            bindingContext.Result = ModelBindingResult.Success(CryptoIdRegistry.Int64Encoder.Decode(value));
         }
         return Task.CompletedTask;
     }

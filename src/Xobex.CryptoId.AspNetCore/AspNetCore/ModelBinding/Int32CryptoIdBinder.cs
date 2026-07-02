@@ -4,7 +4,7 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Xobex.Cryptography.Abstractions;
+using Xobex.CryptoId.Json.Serialization;
 
 namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 
@@ -12,19 +12,14 @@ namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 /// A model binder for the Int32CryptoId type, which decodes a string representation of a CryptoId into
 /// an Int32CryptoId instance using the provided ICryptoIdEncoder&lt;int&gt;.
 /// </summary>
-public class Int32CryptoIdBinder : IModelBinder
+public sealed class Int32CryptoIdBinder : IModelBinder
 {
-    private readonly ICryptoIdEncoder<int> _encoder;
-
     /// <summary>
-    /// Initializes a new instance of the Int32CryptoIdBinder class with the specified ICryptoIdEncoder&lt;int&gt;.
+    /// Gets the singleton instance of the Int32CryptoIdBinder.
     /// </summary>
-    /// <param name="encoder"></param>
-    public Int32CryptoIdBinder(ICryptoIdEncoder<int> encoder)
-    {
-        ArgumentNullException.ThrowIfNull(encoder);
-        _encoder = encoder;
-    }
+    public static readonly Int32CryptoIdBinder Instance = new();
+
+    private Int32CryptoIdBinder() { }
 
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into an Int32CryptoId instance.
@@ -36,7 +31,7 @@ public class Int32CryptoIdBinder : IModelBinder
         var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
         if (!string.IsNullOrEmpty(value))
         {
-            bindingContext.Result = ModelBindingResult.Success(new Int32CryptoId(_encoder.Decode(value)));
+            bindingContext.Result = ModelBindingResult.Success(new Int32CryptoId(CryptoIdRegistry.Int32Encoder.Decode(value)));
         }
         return Task.CompletedTask;
     }
@@ -47,18 +42,6 @@ public class Int32CryptoIdBinder : IModelBinder
 /// </summary>
 public class Int32Binder : IModelBinder
 {
-    private readonly ICryptoIdEncoder<int> _encoder;
-
-    /// <summary>
-    /// Initializes a new instance of the Int32Binder class with the specified ICryptoIdEncoder&lt;int&gt;.
-    /// </summary>
-    /// <param name="encoder"></param>
-    public Int32Binder(ICryptoIdEncoder<int> encoder)
-    {
-        ArgumentNullException.ThrowIfNull(encoder);
-        _encoder = encoder;
-    }
-
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into an int value.
     /// </summary>
@@ -69,7 +52,7 @@ public class Int32Binder : IModelBinder
         var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
         if (!string.IsNullOrEmpty(value))
         {
-            bindingContext.Result = ModelBindingResult.Success(_encoder.Decode(value));
+            bindingContext.Result = ModelBindingResult.Success(CryptoIdRegistry.Int32Encoder.Decode(value));
         }
         return Task.CompletedTask;
     }

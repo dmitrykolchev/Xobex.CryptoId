@@ -31,7 +31,7 @@ public class Int32JsonConverter : JsonConverter<int>
     /// <returns></returns>
     public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return Int32CryptoIdConverter._encoder!.Decode(reader.GetString());
+        return CryptoIdRegistry.Int32Encoder.Decode(reader.GetString());
     }
 
     /// <summary>
@@ -42,6 +42,6 @@ public class Int32JsonConverter : JsonConverter<int>
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(Int32CryptoIdConverter._encoder!.Encode(value));
+        writer.WriteStringValue(CryptoIdRegistry.Int32Encoder.Encode(value));
     }
 }

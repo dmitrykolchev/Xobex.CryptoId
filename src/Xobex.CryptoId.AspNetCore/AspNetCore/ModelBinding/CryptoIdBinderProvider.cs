@@ -4,7 +4,6 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 
@@ -22,13 +21,11 @@ public class CryptoIdBinderProvider : IModelBinderProvider
     {
         if (context.Metadata.ModelType == typeof(Int32CryptoId))
         {
-            var encoder = context.Services.GetRequiredService<ICryptoIdEncoder<int>>();
-            return new Int32CryptoIdBinder(encoder);
+            return Int32CryptoIdBinder.Instance;
         }
         else if (context.Metadata.ModelType == typeof(Int64CryptoId))
         {
-            var encoder = context.Services.GetRequiredService<ICryptoIdEncoder<long>>();
-            return new Int64CryptoIdBinder(encoder);
+            return Int64CryptoIdBinder.Instance;
         }
         return null;
     }

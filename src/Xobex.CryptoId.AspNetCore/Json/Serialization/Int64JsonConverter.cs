@@ -29,7 +29,7 @@ public class Int64JsonConverter : JsonConverter<long>
     /// <returns></returns>
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return Int64CryptoIdConverter._encoder!.Decode(reader.GetString());
+        return CryptoIdRegistry.Int64Encoder.Decode(reader.GetString());
     }
 
     /// <summary>
@@ -40,6 +40,6 @@ public class Int64JsonConverter : JsonConverter<long>
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(Int64CryptoIdConverter._encoder!.Encode(value));
+        writer.WriteStringValue(CryptoIdRegistry.Int64Encoder.Encode(value));
     }
 }
