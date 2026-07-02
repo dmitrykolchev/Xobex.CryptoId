@@ -11,7 +11,7 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// <summary>
 /// Represents a JSON converter for the Int64CryptoId type, enabling
 /// </summary>
-public class Int64JsonConverter : JsonConverter<long>
+public sealed class Int64JsonConverter : JsonConverter<long>
 {
     /// <summary>
     /// Initializes a new instance of the Int64JsonConverter class.

@@ -13,7 +13,7 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// custom serialization and deserialization of cryptographically
 /// encoded integer identifiers.
 /// </summary>
-public class Int32JsonConverter : JsonConverter<int>
+public sealed class Int32JsonConverter : JsonConverter<int>
 {
     /// <summary>
     /// Initializes a new instance of the Int32JsonConverter class.

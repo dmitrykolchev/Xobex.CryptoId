@@ -40,7 +40,7 @@ public sealed class Int32CryptoIdBinder : IModelBinder
 /// <summary>
 /// A model binder for the int type, which decodes a string representation of a CryptoId into
 /// </summary>
-public class Int32Binder : IModelBinder
+public sealed class Int32Binder : IModelBinder
 {
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into an int value.

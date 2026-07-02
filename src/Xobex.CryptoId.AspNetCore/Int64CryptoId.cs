@@ -14,14 +14,12 @@ namespace Xobex.CryptoId;
 /// Represents a cryptographically encoded identifier for a long integer value, providing
 /// </summary>
 [JsonConverter(typeof(Int64CryptoIdConverter))]
-public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
+public readonly struct Int64CryptoId : IEquatable<Int64CryptoId>
 {
     /// <summary>
     /// Represents an empty or uninitialized Int64CryptoId with a value of 0.
     /// </summary>
     public static readonly Int64CryptoId Zero = new(0L);
-
-    private readonly long _value;
 
     /// <summary>
     /// Initializes a new instance of the Int64CryptoId struct with a default value of 0.
@@ -36,18 +34,18 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     /// <param name="value"></param>
     public Int64CryptoId(long value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets a value indicating whether the Int32CryptoId is empty (i.e., has a value of 0).
     /// </summary>
-    public bool IsEmpty => _value == 0;
+    public bool IsEmpty => Value == 0;
 
     /// <summary>
     /// Gets the underlying long integer value of the Int64CryptoId.
     /// </summary>
-    public long Value => _value;
+    public long Value { get; }
 
     /// <summary>
     /// Defines an explicit conversion from Int64CryptoId to long, allowing the extraction of the underlying long integer value.
@@ -55,7 +53,7 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     /// <param name="value"></param>
     public static explicit operator long(Int64CryptoId value)
     {
-        return value._value;
+        return value.Value;
     }
 
     /// <summary>
@@ -74,7 +72,7 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     /// <returns></returns>
     public bool Equals(Int64CryptoId other)
     {
-        return _value == other._value;
+        return Value == other.Value;
     }
 
     /// <summary>
@@ -97,13 +95,13 @@ public readonly struct Int64CryptoId: IEquatable<Int64CryptoId>
     /// <returns></returns>
     public override int GetHashCode()
     {
-        return _value.GetHashCode();
+        return Value.GetHashCode();
     }
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>

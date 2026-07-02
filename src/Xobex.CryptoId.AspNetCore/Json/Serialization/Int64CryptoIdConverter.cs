@@ -5,14 +5,13 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.CryptoId.Json.Serialization;
 
 /// <summary>
 /// Represents a JSON converter for the Int64CryptoId type, enabling
 /// </summary>
-internal class Int64CryptoIdConverter : JsonConverter<Int64CryptoId>
+public sealed class Int64CryptoIdConverter : JsonConverter<Int64CryptoId>
 {
     /// <summary>
     /// Initializes a new instance of the Int64CryptoIdConverter class.

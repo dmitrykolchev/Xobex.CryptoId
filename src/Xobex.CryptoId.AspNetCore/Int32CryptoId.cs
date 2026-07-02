@@ -22,8 +22,6 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     /// </summary>
     public static readonly Int32CryptoId Zero = new(0);
 
-    private readonly int _value;
-
     /// <summary>
     /// Initializes a new instance of the Int32CryptoId struct with a default value of 0.
     /// </summary>
@@ -37,18 +35,18 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     /// <param name="value"></param>
     public Int32CryptoId(int value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets a value indicating whether the Int32CryptoId is empty (i.e., has a value of 0).
     /// </summary>
-    public bool IsEmpty => _value == 0;
+    public bool IsEmpty => Value == 0;
 
     /// <summary>
     /// Gets the underlying integer value of the Int32CryptoId.
     /// </summary>
-    public int Value => _value;
+    public int Value { get; }
 
     /// <summary>
     /// Defines an explicit conversion from Int32CryptoId to int, allowing the extraction of the underlying integer value.
@@ -56,7 +54,7 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     /// <param name="value"></param>
     public static explicit operator int(Int32CryptoId value)
     {
-        return value._value;
+        return value.Value;
     }
 
     /// <summary>
@@ -75,7 +73,7 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     /// <returns></returns>
     public bool Equals(Int32CryptoId other)
     {
-        return _value == other._value;
+        return Value == other.Value;
     }
 
     /// <summary>
@@ -85,7 +83,7 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     /// <returns></returns>
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
-        if(obj is Int32CryptoId other)
+        if (obj is Int32CryptoId other)
         {
             return Equals(other);
         }
@@ -98,13 +96,13 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     /// <returns></returns>
     public override int GetHashCode()
     {
-        return _value.GetHashCode();
+        return Value.GetHashCode();
     }
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>

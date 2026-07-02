@@ -11,7 +11,7 @@ namespace Xobex.CryptoId.DependencyInjection;
 /// Options for configuring the CryptoId services, including the cipher algorithms for Int32 and Int64 IDs
 /// and the secret key used for encoding and decoding.
 /// </summary>
-public class CryptoIdOptions
+public sealed class CryptoIdOptions
 {
     /// <summary>
     /// Gets or sets the cipher algorithm to be used for encoding and decoding Int32 IDs. The default is Speck32_64.

@@ -10,7 +10,7 @@ namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 /// <summary>
 /// Provides a model binder for CryptoId types (Int32CryptoId and Int64CryptoId) and their corresponding primitive types (int and long).
 /// </summary>
-public class CryptoIdBinderProvider : IModelBinderProvider
+public sealed class CryptoIdBinderProvider : IModelBinderProvider
 {
     /// <summary>
     /// Gets the appropriate model binder for the specified model type.

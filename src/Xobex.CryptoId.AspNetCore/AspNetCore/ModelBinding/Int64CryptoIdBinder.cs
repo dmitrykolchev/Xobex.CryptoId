@@ -11,7 +11,7 @@ namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 /// <summary>
 /// A model binder for the Int64CryptoId type, which decodes a string representation of a CryptoId into
 /// </summary>
-public class Int64CryptoIdBinder : IModelBinder
+public sealed class Int64CryptoIdBinder : IModelBinder
 {
     /// <summary>
     /// Gets the singleton instance of the Int64CryptoIdBinder.
@@ -38,7 +38,7 @@ public class Int64CryptoIdBinder : IModelBinder
 /// <summary>
 /// A model binder for the long type, which decodes a string representation of a CryptoId into
 /// </summary>
-public class Int64Binder : IModelBinder
+public sealed class Int64Binder : IModelBinder
 {
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into a long value.
