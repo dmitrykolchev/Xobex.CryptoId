@@ -9,16 +9,24 @@
     };
 }
 
-@inject Xobex.Cryptography.Abstractions.ICryptoIdEncoder<int> encoder
+@inject Xobex.Cryptography.Abstractions.ICryptoIdEncoder<int> int32Encoder
+@inject Xobex.Cryptography.Abstractions.ICryptoIdEncoder<long> int64Encoder
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
     @for(int index = 1; index <= 2; ++index)
     {
-        int idValue = Random.Shared.Next(100000);
+        int int32Value = Random.Shared.Next(100000);
         <p>
-        @Html.ActionLink($"Action Link id={idValue}", $"GetItem{index}", "Home", new { id = encoder.Encode(idValue)} )
+        @Html.ActionLink($"Action Link id={int32Value}", $"GetItem{index}", "Home", new { id = int32Encoder.Encode(int32Value)} )
+        </p>
+    }
+    @for (int index = 3; index <= 4; ++index)
+    {
+        long int64Value = Random.Shared.Next(100000);
+        <p>
+            @Html.ActionLink($"Action Link id={int64Value}", $"GetItem{index}", "Home", new { id = int64Encoder.Encode(int64Value) })
         </p>
     }
     @for (int index = 1; index <= 1; ++index)

@@ -4,6 +4,7 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using Xobex.CryptoId.Json.Serialization;
 
@@ -86,5 +87,11 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     public override int GetHashCode()
     {
         return _value.GetHashCode();
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return _value.ToString(CultureInfo.InvariantCulture);
     }
 }

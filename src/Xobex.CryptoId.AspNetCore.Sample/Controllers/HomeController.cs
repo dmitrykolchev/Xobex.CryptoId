@@ -20,13 +20,25 @@ public class HomeController : Controller
     [HttpGet("GetItem1")]
     public IActionResult GetItem1([ModelBinder(typeof(Int32Binder))]int id)
     {
-        return Ok(id);
+        return Ok($"int id = {id}");
     }
 
     [HttpGet("GetItem2")]
     public IActionResult GetItem2(Int32CryptoId id)
     {
-        return Ok(id.Value);
+        return Ok($"Int32CryptoId id = {id.Value}");
+    }
+
+    [HttpGet("GetItem3")]
+    public IActionResult GetItem3([ModelBinder(typeof(Int64Binder))] long id)
+    {
+        return Ok($"long id = {id}");
+    }
+
+    [HttpGet("GetItem4")]
+    public IActionResult GetItem4(Int64CryptoId id)
+    {
+        return Ok($"Int64CryptoId id = {id.Value}");
     }
 
     public IActionResult Privacy()
