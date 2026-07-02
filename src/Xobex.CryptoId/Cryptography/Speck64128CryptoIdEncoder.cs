@@ -64,6 +64,14 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
     /// unique to your deployment. Typical length is 16 bytes.
     /// In production, provide a unique salt per deployment explicitly.
     /// </param>
+    /// <remarks>
+    /// Decode does not perform an integrity check—the security boundary lies entirely in the
+    /// authorization check after decoding, not in the successful decoding itself.
+    /// For a 32-bit domain, a rate-limitless decode oracle makes exhaustive search of
+    /// the space feasible locally (hours, not years) on a single machine.
+    /// To create secret keys, use a cryptographically secure random sequences
+    /// (e.g., RandomNumberGenerator.GetBytes(16)) and store them securely.
+    /// </remarks>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
     public Speck64128CryptoIdEncoder(string key, byte[] salt)
@@ -104,6 +112,12 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
     /// Decodes a URL-safe Base64 string and decrypts it back to a 64-bit (long) identifier.
     /// </summary>
     /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
+    /// <remarks>
+    /// Decode does not perform an integrity check—the security boundary lies entirely in the
+    /// authorization check after decoding, not in the successful decoding itself.
+    /// For a 32-bit domain, a rate-limitless decode oracle makes exhaustive search of
+    /// the space feasible locally (hours, not years) on a single machine.
+    /// </remarks>
     /// <returns>The decrypted identifier.</returns>
     /// <exception cref="FormatException">Thrown when the input is not a valid URL-safe Base64 string or contains invalid data.</exception>
     public long Decode(ReadOnlySpan<char> urlEncodedBase64)

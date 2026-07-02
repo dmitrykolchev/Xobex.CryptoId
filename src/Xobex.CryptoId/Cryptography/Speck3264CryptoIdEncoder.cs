@@ -1,4 +1,4 @@
-// <copyright file="Speck3264CryptoIdService.cs" company="Dmitry Kolchev">
+// <copyright file="Speck3264CryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
@@ -38,7 +38,7 @@ namespace Xobex.Cryptography;
 /// (deterministic encryption).
 /// </para>
 /// </remarks>
-public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
+public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>
 {
     private static readonly byte[] HkdfInfo = "Speck32-64 ID encryption v1"u8.ToArray();
 
@@ -55,6 +55,14 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
     /// Salt value for HKDF key derivation. Should be a cryptographically random value
     /// unique to your deployment. Typical length is 16 bytes.
     /// </param>
+    /// <remarks>
+    /// Decode does not perform an integrity check—the security boundary lies entirely in the
+    /// authorization check after decoding, not in the successful decoding itself.
+    /// For a 32-bit domain, a rate-limitless decode oracle makes exhaustive search of
+    /// the space feasible locally (hours, not years) on a single machine.
+    /// To create secret keys, use a cryptographically secure random sequences
+    /// (e.g., RandomNumberGenerator.GetBytes(16)) and store them securely.
+    /// </remarks>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
     public Speck3264CryptoIdEncoder(string key, byte[] salt)
@@ -76,6 +84,8 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
     /// <summary>
     /// Encrypts int and encodes result to Base64Url (6 characters).
     /// </summary>
+    /// <param name="value">The 32-bit integer to encrypt.</param>
+    /// <returns>The encrypted identifier as a URL-safe Base64 encoded string.</returns>
     public string Encode(int value)
     {
         Span<byte> plaintext = stackalloc byte[sizeof(int)];
@@ -90,6 +100,14 @@ public sealed class Speck3264CryptoIdEncoder: ICryptoIdEncoder<int>
     /// <summary>
     /// Decodes Base64Url and decrypts to int.
     /// </summary>
+    /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
+    /// <remarks>
+    /// Decode does not perform an integrity check—the security boundary lies entirely in the
+    /// authorization check after decoding, not in the successful decoding itself.
+    /// For a 32-bit domain, a rate-limitless decode oracle makes exhaustive search of
+    /// the space feasible locally (hours, not years) on a single machine.
+    /// </remarks>
+    /// <returns>The decrypted 32-bit integer.</returns>
     /// <exception cref="FormatException">Invalid Base64Url format.</exception>
     public int Decode(ReadOnlySpan<char> urlEncodedBase64)
     {

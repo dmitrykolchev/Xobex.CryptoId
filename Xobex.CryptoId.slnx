@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="src/Xobex.CryptoId.AspNetCore.Sample/Xobex.CryptoId.AspNetCore.Sample.csproj" Id="8fd7a598-7918-4754-bb38-fad43319fcba" />
+  <Project Path="src/Xobex.CryptoId.AspNetCore/Xobex.CryptoId.AspNetCore.csproj" Id="ab718dfd-12fe-4d57-b5e5-70bec7db7b1c" />
   <Project Path="src/Xobex.CryptoId.Benchmarks/Xobex.CryptoId.Benchmarks.csproj" />
   <Project Path="src/Xobex.CryptoId.Tests/Xobex.CryptoId.Tests.csproj" />
   <Project Path="src/Xobex.CryptoId/Xobex.CryptoId.csproj" />

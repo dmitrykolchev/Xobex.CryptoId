@@ -1,0 +1,33 @@
+﻿@using Xobex.CryptoId
+@{
+    ViewData["Title"] = "Home Page";
+
+    var image = new ImageModel()
+    {
+        Id = (Int32CryptoId)1234,
+        Name = "Image1234"
+    };
+}
+
+@inject Xobex.Cryptography.Abstractions.ICryptoIdEncoder<int> encoder
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @for(int index = 1; index <= 2; ++index)
+    {
+        int idValue = Random.Shared.Next(100000);
+        <p>
+        @Html.ActionLink($"Action Link id={idValue}", $"GetItem{index}", "Home", new { id = encoder.Encode(idValue)} )
+        </p>
+    }
+    @for (int index = 1; index <= 1; ++index)
+    {
+        <p>
+            @Html.ActionLink($"Action Link id=Invalid", $"GetItem{index}", "Home", new { id = "Invalid" })
+        </p>
+    }
+    <pre>
+        @Json.Serialize(image);
+    </pre>
+</div>

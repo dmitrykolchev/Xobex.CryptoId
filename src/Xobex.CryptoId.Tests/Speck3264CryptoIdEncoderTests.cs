@@ -290,4 +290,32 @@ public class Speck3264CryptoIdEncoderTests : CryptoIdTestBase
         // Assert
         Assert.AreEqual(value, decoded);
     }
+
+    [TestMethod]
+    public void Speck32_64_MatchesOfficialTestVector()
+    {
+        // Официальный вектор (NSA paper, Beaulieu et al. 2013):
+        // Key words (k0,k1,k2,k3) = (0x0100, 0x0908, 0x1110, 0x1918)
+        // Plaintext (x,y) = (0x6574, 0x694c)
+        // Ciphertext (x,y) = (0xa868, 0x42f2)
+        // Каждое слово закодировано little-endian при сборке byte-массива —
+        // порядок слов сохраняется, байты внутри слова свопаются.
+
+        byte[] key =
+        [
+            0x00, 0x01, // k0 = 0x0100 LE
+            0x08, 0x09, // k1 = 0x0908 LE
+            0x10, 0x11, // k2 = 0x1110 LE
+            0x18, 0x19, // k3 = 0x1918 LE
+        ];
+
+        byte[] plaintext = [0x74, 0x65, 0x4C, 0x69]; // (x=0x6574, y=0x694c), LE per word
+        byte[] expectedCiphertext = [0x68, 0xA8, 0xF2, 0x42]; // (x=0xa868, y=0x42f2), LE per word
+
+        var cipher = new Speck3264CryptoIdEncoder.Speck32_64(key);
+        Span<byte> actual = stackalloc byte[4];
+        cipher.Encrypt(plaintext, actual);
+
+        Assert.IsTrue(actual.SequenceEqual(expectedCiphertext));
+    }
 }

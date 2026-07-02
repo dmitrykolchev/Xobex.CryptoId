@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Xobex.CryptoId.AspNetCore": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:32637;http://localhost:32638"
+    }
+  }
+}
