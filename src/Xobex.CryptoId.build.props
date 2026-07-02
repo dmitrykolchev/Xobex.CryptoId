@@ -13,5 +13,6 @@
       <Version>1.0.10</Version>
       <AssemblyVersion>$(Version).0</AssemblyVersion>
       <FileVersion>$(Version).0</FileVersion>
+      <PackageOutputPath>$(SolutionDir)packages</PackageOutputPath>
     </PropertyGroup>
 </Project>

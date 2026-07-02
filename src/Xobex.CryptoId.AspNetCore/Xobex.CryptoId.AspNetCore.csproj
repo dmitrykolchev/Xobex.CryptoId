@@ -12,7 +12,7 @@
     <PackageId>Xobex.CryptoId.AspNetCore</PackageId>
   </PropertyGroup>
 
-  <Import Project="..\Xobex.CryptoId.build.props"/>
+  <Import Project="..\Xobex.CryptoId.build.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\Xobex.CryptoId\Xobex.CryptoId.csproj" />
