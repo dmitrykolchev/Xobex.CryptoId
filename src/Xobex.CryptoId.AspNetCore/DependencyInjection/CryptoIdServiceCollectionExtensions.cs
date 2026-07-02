@@ -36,6 +36,7 @@ public static class CryptoIdServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddCryptoId(this IServiceCollection services, CryptoIdOptions options)
     {
+        ArgumentNullException.ThrowIfNull(options);
         if (string.IsNullOrEmpty(options.Secret))
         {
             var entropy = RandomNumberGenerator.GetBytes(64);
