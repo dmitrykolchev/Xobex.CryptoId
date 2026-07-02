@@ -53,12 +53,12 @@ internal sealed class Skip32
     {
         if (FTable.Distinct().Count() != 256)
         {
-            throw new InvalidOperationException("FTable должна быть перестановкой 0..255.");
+            throw new InvalidOperationException("FTable must be a permutation 0..255.");
         }
 
         if (FTable[0x7a] != 0xd6)
         {
-            throw new InvalidOperationException("FTable не прошла контрольную проверку: F(0x7a) должно быть 0xd6.");
+            throw new InvalidOperationException("FTable failed validation check: F(0x7a) must be 0xd6.");
         }
     }
 
@@ -67,7 +67,7 @@ internal sealed class Skip32
     {
         if (key.Length != KeyLength)
         {
-            throw new ArgumentException($"Ключ Skip32 должен состоять ровно из {KeyLength} байт.", nameof(key));
+            throw new ArgumentException($"The Skip32 key must be exactly {KeyLength} bytes long.", nameof(key));
         }
         key.CopyTo(_key);
     }

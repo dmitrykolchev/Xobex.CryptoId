@@ -69,9 +69,13 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
+        if(salt.Length < 8)
+        {
+            throw new ArgumentException("Salt must be at least 8 bytes for HKDF-SHA256.", nameof(salt));
+        }
 
-        // HKDF-SHA256: 8 bytes for Speck32/64 (4 words × 2 bytes)
-        var keyMaterial = HKDF.DeriveKey(
+    // HKDF-SHA256: 8 bytes for Speck32/64 (4 words × 2 bytes)
+    var keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: Encoding.UTF8.GetBytes(key),
             outputLength: 8,
@@ -176,7 +180,7 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>
         {
             if (key.Length != 8)
             {
-                throw new ArgumentException("Ключ Speck32/64 должен быть ровно 8 байт.");
+                throw new ArgumentException("Speck-32/64 key must be exactly 8 bytes.");
             }
 
             // Four 16-bit key words

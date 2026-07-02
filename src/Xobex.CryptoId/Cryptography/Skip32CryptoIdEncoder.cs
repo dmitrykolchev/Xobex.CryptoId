@@ -35,8 +35,11 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
+        if (salt.Length < 8)
+        {
+            throw new ArgumentException("Salt must be at least 8 bytes for HKDF-SHA256.", nameof(salt));
+        }
 
-        // HKDF-SHA256: ikm → 32-байтный ключ для AES
         var keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: Encoding.UTF8.GetBytes(key),

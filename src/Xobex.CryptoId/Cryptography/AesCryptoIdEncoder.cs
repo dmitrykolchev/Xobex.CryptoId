@@ -65,6 +65,10 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
+        if (salt.Length < 8)
+        {
+            throw new ArgumentException("Salt must be at least 8 bytes for HKDF-SHA256.", nameof(salt));
+        }
 
         // HKDF-SHA256: ikm → 32-байтный ключ для AES
         var keyMaterial = HKDF.DeriveKey(

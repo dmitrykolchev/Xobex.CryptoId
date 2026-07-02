@@ -1,4 +1,4 @@
-// <copyright file="Speck64128CryptoIdService.cs" company="Dmitry Kolchev">
+// <copyright file="Speck64128CryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
@@ -78,6 +78,10 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
+        if (salt.Length < 8)
+        {
+            throw new ArgumentException("Salt must be at least 8 bytes for HKDF-SHA256.", nameof(salt));
+        }
 
         // HKDF-SHA256: ikm → 16-bytes key for Speck64/128
         // Unlike MD5: cryptographically secure, domain-separated, without collision vulnerabilities
@@ -184,7 +188,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         {
             if (key.Length != 16)
             {
-                throw new ArgumentException("Ключ Speck64/128 должен быть ровно 16 байт.");
+                throw new ArgumentException("Speck-64/128 key must be exactly 16 bytes.");
             }
 
             // Read 4 key words in little-endian (platform-independent)
