@@ -13,23 +13,25 @@ using Xobex.Cryptography.Abstractions;
 namespace Xobex.Cryptography;
 
 /// <summary>
-/// Provides ultra-compact deterministic encryption of 64-bit (long) identifiers
-/// using a single AES-256 block with built-in integrity checking.
+/// Provides a compact, deterministic encryption scheme for 64-bit identifiers using AES-256.
 /// </summary>
 /// <remarks>
 /// <para>
-/// This method encodes an 8-byte ID and an 8-byte verification cipher (truncated HMAC-SHA256)
-/// into a single 16-byte AES block. This results in a fixed encrypted data size (16 bytes),
-/// which, when encoded in Base64Url, yields a string of only 22 characters (instead of 48 characters for AES-GCM).
+/// This implementation is specifically designed for scenarios where URL length is a 
+/// critical constraint. It achieves a highly compact 22-character Base64Url output 
+/// by encrypting a single 16-byte block containing the ID and a 64-bit FNV-1a checksum.
 /// </para>
 /// <para>
-/// Security Properties:
-/// - **Confidentiality**: AES-256 in ECB mode. Since the data length is strictly equal to the size of one
-/// block (16 bytes), ECB mode is secure because it is a pseudo-random permutation (PRP).
-/// - **Integrity**: Use of a 64-bit HMAC-SHA256 key-forgery guarantees protection
-/// from brute-force attacks and unauthorized modification (probability of successful forgery: 1/2⁶⁴).
-/// - **Key Sharing**: Using HKDF-SHA256, two independent keys are generated:
-/// one for AES encryption, the other for HMAC calculation.
+/// <b>Security Warning:</b> This is a <b>Deterministic Encryption</b> scheme. 
+/// Unlike AES-GCM, it does not use a unique nonce per encryption, making it 
+/// susceptible to pattern analysis and replay attacks. The integrity check is 
+/// provided by a non-cryptographic checksum (FNV-1a) appended to the plaintext 
+/// before encryption.
+/// </para>
+/// <para>
+/// <b>Use Case:</b> Suitable for obfuscating database primary keys in URLs to 
+/// prevent simple sequential enumeration (IDOR protection), provided that 
+/// authorization is enforced on the server side.
 /// </para>
 /// </remarks>
 public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>, ICryptoIdEncoder
