@@ -31,6 +31,18 @@ Do not use for cryptographic protection!
 | Speck-32/64 | 64-bit | 32-bit | int, uint, short | 6 chars | Ultra-low latency, tiny payloads, 32-bit integer IDs. |
 | Skip32 | 80-bit | 32-bit | int, uint, short | 6 chars | Low latency, tiny payloads, 32-bit integer IDs. |
 
+## Example Encoded IDs
+
+| Cipher | Example Encoded ID | Length |
+|---|---|---|
+| Skip32                         | 4kIX3g                                           |  6 |
+| Speck-32/64                      | HiJJTw                                           |  6 |
+| Speck-64/128                     | iuMbGJ2ZEbU                                      | 11 |
+| Compact Det. AES-ECB        | d2b5jAF5XmprvL8CO2V6dA                           | 22 |
+| AES-GCM                         | dQBZe118pekBE6MDa7-t9nSIkJmUnfI88iL_2iKLRjlon-8p | 48 |
+| Det. AES-GCM            | jJ-RPdfdRh6wg9WSl2W-zksuq8sbgjoinvxtW0kNpU1f_cc7 | 48 |
+| Det. ChaCha20-Poly1305  | picyFZmOpgO2rpVfTXrIEpfg5eWyQtA-eg6jYYDbnsexQPOM | 48 |
+
 ------------------------------
 ## Core Abstraction
 All implementations share a single unified interface, making it easy to swap cryptographic algorithms without changing your business logic:
