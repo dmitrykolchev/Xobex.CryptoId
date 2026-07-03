@@ -41,9 +41,19 @@ public enum IdCipherAlgorithm
     ChaCha20Poly1305,
 
     /// <summary>
+    /// Deterministic ChaCha20-Poly1305 authenticated encryption algorithm with deterministic nonce generation.
+    /// </summary>
+    DeterministicChaCha20Poly1305,
+
+    /// <summary>
     /// Deterministic AES-GCM (Advanced Encryption Standard with Galois/Counter Mode) with
     /// deterministic nonce generation.
     /// </summary>
     DeterministicAesGcm,
+
+    /// <summary>
+    /// Compact deterministic AES (Advanced Encryption Standard) with deterministic nonce generation.
+    /// </summary>
+    CompactDeterministicAes,
 }
 

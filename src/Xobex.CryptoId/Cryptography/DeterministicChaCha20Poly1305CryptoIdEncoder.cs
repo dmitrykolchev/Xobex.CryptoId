@@ -1,4 +1,4 @@
-// <copyright file="DeterministicAesGcmCryptoIdEncoder.cs" company="Dmitry Kolchev">
+// <copyright file="ChaCha20Poly1305CryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
@@ -13,31 +13,9 @@ using Xobex.Cryptography.Abstractions;
 namespace Xobex.Cryptography;
 
 /// <summary>
-/// Provides deterministic AES-GCM encryption for encoding and decoding 64-bit (long) identifiers.
+/// Provides deterministic ChaCha20-Poly1305 authenticated encryption for encoding and decoding 64-bit (long) identifiers.
 /// </summary>
-/// <remarks>
-/// <para>
-/// This encoder uses AES-GCM (Advanced Encryption Standard in Galois/Counter Mode) to encrypt
-/// 64-bit identifiers and encode them as URL-safe Base64 strings. Each encryption operation uses
-/// a random nonce to ensure different ciphertexts for the same plaintext.
-/// </para>
-/// <para>
-/// Security Properties:
-/// - **Encryption**: AES-256-GCM with random 96-bit nonce and 128-bit authentication tag
-/// - **Key Material**: HKDF-SHA256 key derivation from user-provided key and salt
-/// - **Authentication**: Each ciphertext includes authenticated tag for integrity verification
-/// - **Randomness**: New nonce for each encryption operation (cryptographically secure)
-/// </para>
-/// <para>
-/// Nonce Collision Risk:
-/// For random 96-bit nonces, collision probability with n messages is approximately n²/2⁹⁷.
-/// With n = 2³² messages: P(collision) ≈ 2⁻³³, which is unacceptable for high-volume services.
-/// This implementation is suitable for general-purpose ID obfuscation but not for systems
-/// requiring cryptographic strength against sophisticated attackers. For higher security,
-/// consider using deterministic nonce counters or nonce-misuse-resistant modes like AES-GCM-SIV.
-/// </para>
-/// </remarks>
-public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>, ICryptoIdEncoder
+public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoIdEncoder, IDisposable
 {
     private const int TagSize = 16;
     private const int NonceSize = 12;
@@ -45,15 +23,15 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     private const int TotalSize = NonceSize + TagSize + IdSize;
 
     // Contextual label for HKDF — isolates key material from other applications
-    private static readonly byte[] HkdfInfo = "AES ID encryption v1"u8.ToArray();
-    private static readonly byte[] NonceKeyInfo = "Xobex.AesGcm.CryptoId.nonce.v1"u8.ToArray();
+    private static readonly byte[] HkdfInfo = "ChaCha20Poly1305 ID encryption v1"u8.ToArray();
+    private static readonly byte[] NonceKeyInfo = "Xobex.ChaCha20Poly1305.CryptoId.nonce.v1"u8.ToArray();
 
-    private readonly ThreadLocal<AesGcm> _cipher;
+    private readonly ChaCha20Poly1305 _cipher;
     private readonly byte[] _nonceKey;
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DeterministicAesGcmCryptoIdEncoder"/> class.
+    /// Initializes a new instance of the <see cref="ChaCha20Poly1305CryptoIdEncoder"/> class.
     /// </summary>
     /// <param name="key">
     /// The cryptographic key material (e.g., password, API key, or random string).
@@ -65,7 +43,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     /// </param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
-    public DeterministicAesGcmCryptoIdEncoder(string key, byte[] salt)
+    public DeterministicChaCha20Poly1305CryptoIdEncoder(string key, byte[] salt)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
@@ -84,38 +62,33 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
             outputLength: 32,
             salt: salt,
             info: HkdfInfo);
-        _cipher = new(() => new AesGcm(keyMaterial, TagSize), trackAllValues: true);
+        _cipher = new ChaCha20Poly1305(keyMaterial);
     }
 
     /// <summary>
-    /// Gets the thread-local AES-GCM cipher instance.
+    /// Gets the thread-local ChaCha20Poly1305 cipher instance.
     /// </summary>
-    /// <value>The AES-GCM cipher instance for this thread.</value>
+    /// <value>The ChaCha20Poly1305 cipher instance for this thread.</value>
     /// <exception cref="ObjectDisposedException">Thrown if the encoder has been disposed.</exception>
-    private AesGcm Cipher
+    private ChaCha20Poly1305 Cipher
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return _cipher.Value!;
+            return _cipher;
         }
     }
 
     /// <summary>
-    /// Encrypts a 64-bit (long) identifier and encodes it to a URL-safe Base64 string.
+    /// Encodes a 64-bit identifier into a URL-safe Base64 string using ChaCha20-Poly1305 encryption.
     /// </summary>
     /// <param name="id">The identifier to encrypt.</param>
     /// <returns>The encrypted identifier as a URL-safe Base64 encoded string.</returns>
-    /// <remarks>
-    /// The encryption is deterministic (Synthetic IV) and the nonce is calculated based on HMAC-SHA256 from ID
-    /// </remarks>
     public string Encode(long id)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
+        // Everything is allocated on the stack - zero heap allocations
         Span<byte> buffer = stackalloc byte[TotalSize];
-
         var idBytes = buffer.Slice(NonceSize + TagSize, IdSize);
         BinaryPrimitives.WriteInt64LittleEndian(idBytes, id);
 
@@ -126,15 +99,18 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
 
         Cipher.Encrypt(nonce, idBytes, idBytes, tag);
 
+        // .NET magic: Encodes directly to URL-safe string in a single pass.
+        // This creates exactly one string allocation
         return Base64Url.EncodeToString(buffer);
     }
+
     /// <summary>
-    /// Decrypts text to long id
+    /// Decodes a URL-safe Base64 string and decrypts it back to the original 64-bit identifier.
     /// </summary>
-    /// <param name="text">encrypted id</param>
-    /// <returns>decrypted id</returns>
-    /// <exception cref="FormatException">Invalid Base64Url format</exception>
-    public long Decode(ReadOnlySpan<char> text)
+    /// <param name="urlEncodedBase64">encrypted id</param>
+    /// <returns>The original 64-bit identifier.</returns>
+    /// <exception cref="FormatException">Thrown if the input is not a valid URL-safe Base64 string.</exception>
+    public long Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -144,7 +120,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         Span<byte> buffer = stackalloc byte[totalSize];
 
         // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != totalSize)
+        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != totalSize)
         {
             throw new FormatException($"Invalid Base64Url format: expected {totalSize} bytes after decoding.");
         }
@@ -169,21 +145,17 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
             return;
         }
         _disposed = true;
-        foreach (var item in _cipher.Values)
-        {
-            item.Dispose();
-        }
         _cipher.Dispose();
-    }
-
-    string ICryptoIdEncoder.Encode(object id)
-    {
-        return Encode((long)id);
     }
 
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    string ICryptoIdEncoder.Encode(object id)
+    {
+        return Encode((long)id);
     }
 
     /// <summary>
@@ -198,4 +170,3 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         mac[..NonceSize].CopyTo(nonceDestination);
     }
 }
-
