@@ -1,4 +1,4 @@
-// <copyright file="AesCryptoIdService.cs" company="Dmitry Kolchev">
+// <copyright file="AesCryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
@@ -37,7 +37,7 @@ namespace Xobex.Cryptography;
 /// consider using deterministic nonce counters or nonce-misuse-resistant modes like AES-GCM-SIV.
 /// </para>
 /// </remarks>
-public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
+public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>, ICryptoIdEncoder
 {
     private const int TagSize = 16;
     private const int NonceSize = 12;
@@ -49,7 +49,7 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AesCryptoIdEncoder"/> class.
+    /// Initializes a new instance of the <see cref="AesGcmCryptoIdEncoder"/> class.
     /// </summary>
     /// <param name="key">
     /// The cryptographic key material (e.g., password, API key, or random string).
@@ -61,7 +61,7 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
     /// </param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
-    public AesCryptoIdEncoder(string key, byte[] salt)
+    public AesGcmCryptoIdEncoder(string key, byte[] salt)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
@@ -77,8 +77,7 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
             outputLength: 32,
             salt: salt,
             info: HkdfInfo);
-
-        _cipher = new(() => new AesGcm(keyMaterial, TagSize));
+        _cipher = new(() => new AesGcm(keyMaterial, TagSize), trackAllValues: true);
     }
 
     /// <summary>
@@ -166,10 +165,26 @@ public sealed class AesCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
         _disposed = true;
+        foreach (var item in _cipher.Values)
+        {
+            item.Dispose();
+        }
         _cipher.Dispose();
     }
+
+    string ICryptoIdEncoder.Encode(object id)
+    {
+        return Encode((long)id);
+    }
+
+    object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
+    {
+        return Decode(urlEncodedBase64);
+    }
 }
-
-
 

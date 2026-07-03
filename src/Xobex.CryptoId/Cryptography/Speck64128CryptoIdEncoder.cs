@@ -45,7 +45,7 @@ namespace Xobex.Cryptography;
 /// but should NOT be used for encrypting variable data structures or sensitive information.
 /// </para>
 /// </remarks>
-public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
+public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoIdEncoder
 {
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "Speck64-128 ID encryption v1"u8.ToArray();
@@ -139,6 +139,16 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>
         _cipher.Decrypt(ciphertext, plaintext);
 
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+    }
+
+    string ICryptoIdEncoder.Encode(object id)
+    {
+        return Encode((long)id);
+    }
+
+    object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
+    {
+        return Decode(urlEncodedBase64);
     }
 
     // -------------------------------------------------------------------------

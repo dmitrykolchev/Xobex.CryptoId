@@ -1,41 +1,12 @@
-// <copyright file="IdCipher.cs" company="Dmitry Kolchev">
+// <copyright file="CryptoIdFactory.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
 
+using System.Security.Cryptography;
 using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.Cryptography;
-
-/// <summary>
-/// Specifies the cryptographic algorithm used for encoding and decoding identifiers.
-/// </summary>
-public enum IdCipherAlgorithm
-{
-    /// <summary>
-    /// AES-GCM (Advanced Encryption Standard with Galois/Counter Mode).
-    /// Suitable for encrypting 64-bit (long) identifiers with authentication.
-    /// </summary>
-    AesGcm,
-
-    /// <summary>
-    /// Speck 32/64 lightweight block cipher.
-    /// Suitable for encrypting 32-bit (int) identifiers.
-    /// </summary>
-    Speck32_64,
-
-    /// <summary>
-    /// Speck 64/128 lightweight block cipher.
-    /// Suitable for encrypting 64-bit (long) identifiers.
-    /// </summary>
-    Speck64_128,
-
-    /// <summary>
-    /// Skip 32 lightweight block cipher.
-    /// Suitable for encrypting 32-bit (int) identifiers.
-    /// </summary>
-    Skip32
-}
 
 /// <summary>
 /// Factory class for creating cryptographic identifier encoders.
@@ -52,7 +23,12 @@ public class CryptoIdFactory
     /// In production environments, replace this with a unique, cryptographically random value
     /// specific to your deployment.
     /// </summary>
-    private static readonly byte[] DefaultSalt = Convert.FromHexString("6b4e3a9f1c8d2e7b0a5f4c3d9e1b8a2f");
+    public static readonly byte[] DefaultSalt;
+
+    static CryptoIdFactory()
+    {
+        RandomNumberGenerator.Fill(DefaultSalt = new byte[16]);
+    }
 
     /// <summary>
     /// Creates a cryptographic identifier encoder for the specified algorithm and data type.
@@ -77,13 +53,16 @@ public class CryptoIdFactory
     public static ICryptoIdEncoder<T> Create<T>(IdCipherAlgorithm algorithm, string key, byte[]? salt = null)
         where T : struct
     {
-        object result;
+        ICryptoIdEncoder result;
+        salt ??= DefaultSalt;
         if (typeof(T) == typeof(long))
         {
             result = algorithm switch
             {
-                IdCipherAlgorithm.AesGcm => new AesCryptoIdEncoder(key, salt ?? DefaultSalt),
-                IdCipherAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt ?? DefaultSalt),
+                IdCipherAlgorithm.AesGcm => new AesGcmCryptoIdEncoder(key, salt),
+                IdCipherAlgorithm.DeterministicAesGcm => new DeterministicAesGcmCryptoIdEncoder(key, salt),
+                IdCipherAlgorithm.ChaCha20Poly1305 => new ChaCha20Poly1305CryptoIdEncoder(key, salt),
+                IdCipherAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
         }
@@ -91,8 +70,8 @@ public class CryptoIdFactory
         {
             result = algorithm switch
             {
-                IdCipherAlgorithm.Speck32_64 => new Speck3264CryptoIdEncoder(key, salt ?? DefaultSalt),
-                IdCipherAlgorithm.Skip32 => new Skip32CryptoIdEncoder(key, salt ?? DefaultSalt),
+                IdCipherAlgorithm.Speck32_64 => new Speck3264CryptoIdEncoder(key, salt),
+                IdCipherAlgorithm.Skip32 => new Skip32CryptoIdEncoder(key, salt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
         }

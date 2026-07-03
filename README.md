@@ -169,10 +169,6 @@ catch (FormatException ex)
 }
 ```
 ------------------------------
-## License
-This project is licensed under the MIT License - see the LICENSE.TXT file for details.
-------------------------------
-
 ## Benchmark Results
 
 ```
@@ -185,13 +181,21 @@ Intel Core i7-10700KF CPU 3.80GHz (Max: 3.79GHz), 1 CPU, 16 logical and 8 physic
 
 
 ```
-| Method             | Mean      | Error    | StdDev   | Ratio | Gen0   | Allocated | Alloc Ratio |
-|------------------- |----------:|---------:|---------:|------:|-------:|----------:|------------:|
-| Encode_AesGcm      | 270.88 ns | 1.214 ns | 1.076 ns |  1.00 | 0.0143 |     120 B |        1.00 |
-| Encode_Speck64_128 |  32.06 ns | 0.107 ns | 0.100 ns |  0.12 | 0.0057 |      48 B |        0.40 |
-| Encode_Speck32_64  |  39.37 ns | 0.205 ns | 0.171 ns |  0.15 | 0.0048 |      40 B |        0.33 |
-| Encode_Skip32      | 194.34 ns | 1.024 ns | 0.958 ns |  0.72 | 0.0048 |      40 B |        0.33 |
-| Decode_AesGcm      | 187.59 ns | 1.643 ns | 1.457 ns |  0.69 |      - |         - |        0.00 |
-| Decode_Speck64_128 |  43.04 ns | 0.133 ns | 0.111 ns |  0.16 |      - |         - |        0.00 |
-| Decode_Speck32_64  |  62.31 ns | 0.253 ns | 0.236 ns |  0.23 |      - |         - |        0.00 |
-| Decode_Skip32      | 197.91 ns | 1.893 ns | 1.771 ns |  0.73 |      - |         - |        0.00 |
+| Method                  | Mean      | Error    | StdDev   | Ratio | Gen0   | Allocated | Alloc Ratio |
+|------------------------ |----------:|---------:|---------:|------:|-------:|----------:|------------:|
+| Encode_AesGcm           | 270.05 ns | 0.852 ns | 0.797 ns |  1.00 | 0.0143 |     120 B |        1.00 |
+| Encode_Speck64_128      |  31.53 ns | 0.135 ns | 0.119 ns |  0.12 | 0.0057 |      48 B |        0.40 |
+| Encode_Speck32_64       |  38.51 ns | 0.136 ns | 0.114 ns |  0.14 | 0.0048 |      40 B |        0.33 |
+| Encode_Skip32           | 193.25 ns | 0.507 ns | 0.424 ns |  0.72 | 0.0048 |      40 B |        0.33 |
+| Encode_ChaCha20Poly1305 | 430.02 ns | 1.125 ns | 0.997 ns |  1.59 | 0.0143 |     120 B |        1.00 |
+| Decode_AesGcm           | 187.23 ns | 0.929 ns | 0.869 ns |  0.69 |      - |         - |        0.00 |
+| Decode_Speck64_128      |  43.15 ns | 0.106 ns | 0.094 ns |  0.16 |      - |         - |        0.00 |
+| Decode_Speck32_64       |  61.44 ns | 0.120 ns | 0.094 ns |  0.23 |      - |         - |        0.00 |
+| Decode_Skip32           | 195.18 ns | 0.663 ns | 0.620 ns |  0.72 |      - |         - |        0.00 |
+| Decode_ChaCha20Poly1305 | 335.66 ns | 0.977 ns | 0.816 ns |  1.24 |      - |         - |        0.00 |
+
+------------------------------
+## License
+This project is licensed under the MIT License - see the LICENSE.TXT file for details.
+------------------------------
+

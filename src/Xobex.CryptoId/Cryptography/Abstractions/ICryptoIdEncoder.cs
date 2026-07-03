@@ -1,10 +1,28 @@
-// <copyright file="ISequenceCipher.cs" company="Dmitry Kolchev">
+// <copyright file="ICryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
 
 namespace Xobex.Cryptography.Abstractions;
 
+/// <summary>
+/// Defines the contract for encrypting and decrypting cryptographic identifiers.
+/// </summary>
+public interface ICryptoIdEncoder
+{
+    /// <summary>
+    /// Encrypts an identifier and encodes it to a URL-safe Base64 string.
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <returns>The encrypted identifier as a URL-safe Base64 encoded string.</returns>
+    string Encode(object id);
+    /// <summary>
+    /// Decodes a URL-safe Base64 string and decrypts it back to the original identifier.
+    /// </summary>
+    /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
+    /// <returns>The decrypted identifier.</returns>
+    object Decode(ReadOnlySpan<char> urlEncodedBase64);
+}
 /// <summary>
 /// Defines the contract for encrypting and decrypting cryptographic identifiers of type <typeparamref name="T"/>.
 /// </summary>

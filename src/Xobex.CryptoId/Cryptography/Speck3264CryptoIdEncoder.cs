@@ -38,7 +38,7 @@ namespace Xobex.Cryptography;
 /// (deterministic encryption).
 /// </para>
 /// </remarks>
-public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>
+public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEncoder
 {
     private static readonly byte[] HkdfInfo = "Speck32-64 ID encryption v1"u8.ToArray();
 
@@ -69,18 +69,18 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(salt);
-        if(salt.Length < 8)
+        if (salt.Length < 8)
         {
             throw new ArgumentException("Salt must be at least 8 bytes for HKDF-SHA256.", nameof(salt));
         }
 
-    // HKDF-SHA256: 8 bytes for Speck32/64 (4 words × 2 bytes)
-    var keyMaterial = HKDF.DeriveKey(
-            hashAlgorithmName: HashAlgorithmName.SHA256,
-            ikm: Encoding.UTF8.GetBytes(key),
-            outputLength: 8,
-            salt: salt,
-            info: HkdfInfo);
+        // HKDF-SHA256: 8 bytes for Speck32/64 (4 words × 2 bytes)
+        var keyMaterial = HKDF.DeriveKey(
+                hashAlgorithmName: HashAlgorithmName.SHA256,
+                ikm: Encoding.UTF8.GetBytes(key),
+                outputLength: 8,
+                salt: salt,
+                info: HkdfInfo);
 
         _cipher = new Speck32_64(keyMaterial);
     }
@@ -128,6 +128,16 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>
         _cipher.Decrypt(ciphertext, plaintext);
 
         return BinaryPrimitives.ReadInt32LittleEndian(plaintext);
+    }
+
+    string ICryptoIdEncoder.Encode(object id)
+    {
+        return Encode((int)id);
+    }
+
+    object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
+    {
+        return Decode(urlEncodedBase64);
     }
 
     // -------------------------------------------------------------------------

@@ -18,7 +18,7 @@ public class CryptoIdEncoderTests : CryptoIdTestBase
 
         // Assert
         Assert.IsNotNull(encoder);
-        Assert.IsInstanceOfType(encoder, typeof(AesCryptoIdEncoder));
+        Assert.IsInstanceOfType(encoder, typeof(AesGcmCryptoIdEncoder));
     }
 
     [TestMethod]
