@@ -51,7 +51,7 @@ Select the appropriate implementation based on your application's specific requi
 | :--- | :--- | :--- | :--- | :--- |
 | **Speck** | **Low** (Obfuscation) | **Minimal** | **Extreme** | Hiding sequential integer IDs in non-sensitive contexts where performance is the absolute priority. |
 | **Compact AES-GCM** | **High** (SIV Mode) | **Compact** | **High** | **The Recommended Standard** for public-facing APIs and URLs. Provides strong protection against tampering and guessing while remaining URL-friendly. |
-| **AES-GCM+HMAC256** | **Maximum** | **Large** | **Moderate** | Encrypting sensitive data structures where payload size is not a constraint and full AEAD properties are required. |
+| **AES-GCM+HMAC-SHA256** | **Maximum** | **Large** | **Moderate** | Encrypting sensitive data structures where payload size is not a constraint and full AEAD properties are required. |
 
 ***
 
@@ -63,7 +63,7 @@ Select the appropriate implementation based on your application's specific requi
 *   **Payload Size:** 
     *   The `Compact` variant is specifically engineered to keep the Base64Url string length minimal (approx. 22 characters), making it ideal for SEO and clean URL design.
 *   **Deterministic Behavior:** 
-    *   The `Compact` and `Speck` variants are **deterministic** (the same input produces the same output). This is intentional to allow for consistent URL generation, but it means they are not suitable for encrypting data that requires unique ciphertexts for every operation.
+    *   All variants are **deterministic** (the same input produces the same output). This is intentional to allow for consistent URL generation, but it means they are not suitable for encrypting data that requires unique ciphertexts for every operation.
 
 ------------------------------
 ## Core Abstraction
