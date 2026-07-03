@@ -289,7 +289,7 @@ The table below outlines the core cryptographic, operational, and architectural 
 ### Architectural Recommendation
 *   Use **Speck64/128** only when **URL length constraint is the absolute highest priority** (e.g., printed URLs, SMS, legacy protocols), and you can guarantee a robust, infallible authorization layer at the API boundary to mitigate IDOR risks.
 *   Use **AES-256 + FNV-1a** for all general-purpose enterprise applications, as it provides built-in tampering rejection, standard compliance, and highly secure isolation of your internal database structure.
-* 
+
 
 ------------------------------
 ## Benchmark Results
