@@ -22,7 +22,7 @@ Do not use for cryptographic protection!
 ## Supported Ciphers
 
 | Cipher | Key Size | Block Size | Compatible Types | Encoded Length | Best Used For |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | Nondeterministic AES-GCM | 256-bit | 128-bit | int, long, etc. | 48 chars | High-security environments, web tokens, sensitive data. |
 | Deterministic AES-GCM | 256-bit | 128-bit | int, long, etc. | 48 chars | High-security environments, web tokens, sensitive data. |
 | Compact Deterministic AES-ECB | 256-bit | 128-bit | int, long, etc.| 22 chars | High-security environments, web tokens, sensitive data. |
