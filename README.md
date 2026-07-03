@@ -50,8 +50,8 @@ Select the appropriate implementation based on your application's specific requi
 | Algorithm | Security Level | Payload Size (URL) | Performance | Best Use Case |
 | :--- | :--- | :--- | :--- | :--- |
 | **Speck** | **Low** (Obfuscation) | **Minimal** | **Extreme** | Hiding sequential integer IDs in non-sensitive contexts where performance is the absolute priority. |
-| **Compact AES-GCM** | **High** (SIV Mode) | **Compact** | **High** | **The Recommended Standard** for public-facing APIs and URLs. Provides strong protection against tampering and guessing while remaining URL-friendly. |
-| **AES-GCM+HMAC-SHA256** | **Maximum** | **Large** | **Moderate** | Encrypting sensitive data structures where payload size is not a constraint and full AEAD properties are required. |
+| **Compact AES-GCM+FNV-1a** | **High** (SIV Mode) | **Compact** | **High** | **The Recommended Standard** for public-facing APIs and URLs. Provides strong protection against tampering and guessing while remaining URL-friendly. |
+| **Deterministic AES-GCM+HMAC-SHA256** | **Maximum** | **Large** | **Moderate** | Encrypting sensitive data structures where payload size is not a constraint and full AEAD properties are required. |
 
 ***
 
