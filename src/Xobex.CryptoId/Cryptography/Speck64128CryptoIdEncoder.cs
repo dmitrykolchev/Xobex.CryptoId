@@ -253,10 +253,13 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
             // Key schedule (spec, Algorithm 3):
             //   l[i + m - 1] = (rotr(l[i], α) + k[i]) ⊕ i
             //   k[i + 1]     = rotl(k[i], β) ⊕ l[i + m - 1]
-            for (var i = 0; i < Rounds - 1; i++)
+            unchecked
             {
-                l[i + KeyWords - 1] = (BitOperations.RotateRight(l[i], Alpha) + _roundKeys[i]) ^ (uint)i;
-                _roundKeys[i + 1] = BitOperations.RotateLeft(_roundKeys[i], Beta) ^ l[i + KeyWords - 1];
+                for (var i = 0; i < Rounds - 1; i++)
+                {
+                    l[i + KeyWords - 1] = (BitOperations.RotateRight(l[i], Alpha) + _roundKeys[i]) ^ (uint)i;
+                    _roundKeys[i + 1] = BitOperations.RotateLeft(_roundKeys[i], Beta) ^ l[i + KeyWords - 1];
+                }
             }
         }
 
@@ -277,10 +280,13 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
 
             // Round function: x = (rotr(x, α) + y) ⊕ k_i
             //                 y = rotl(y, β) ⊕ x
-            for (var i = 0; i < Rounds; i++)
+            unchecked
             {
-                x = (BitOperations.RotateRight(x, Alpha) + y) ^ _roundKeys[i];
-                y = BitOperations.RotateLeft(y, Beta) ^ x;
+                for (var i = 0; i < Rounds; i++)
+                {
+                    x = (BitOperations.RotateRight(x, Alpha) + y) ^ _roundKeys[i];
+                    y = BitOperations.RotateLeft(y, Beta) ^ x;
+                }
             }
 
             BinaryPrimitives.WriteUInt32LittleEndian(ciphertext[..4], x);
@@ -300,11 +306,14 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
             var x = BinaryPrimitives.ReadUInt32LittleEndian(ciphertext[..4]);
             var y = BinaryPrimitives.ReadUInt32LittleEndian(ciphertext.Slice(4, 4));
 
-            // Inverse of round function in reverse order of rounds
-            for (var i = Rounds - 1; i >= 0; i--)
+            unchecked
             {
-                y = BitOperations.RotateRight(x ^ y, Beta);
-                x = BitOperations.RotateLeft((x ^ _roundKeys[i]) - y, Alpha);
+                // Inverse of round function in reverse order of rounds
+                for (var i = Rounds - 1; i >= 0; i--)
+                {
+                    y = BitOperations.RotateRight(x ^ y, Beta);
+                    x = BitOperations.RotateLeft((x ^ _roundKeys[i]) - y, Alpha);
+                }
             }
 
             BinaryPrimitives.WriteUInt32LittleEndian(plaintext[..4], x);

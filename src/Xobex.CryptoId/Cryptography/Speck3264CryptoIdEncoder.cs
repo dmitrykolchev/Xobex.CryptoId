@@ -244,10 +244,13 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
             //   k[i + 1]     = rotl(k[i], β) ⊕ l[i + m - 1]
             //
             // Arithmetic is performed in uint, result is truncated to 16 bits via Mask16
-            for (var i = 0; i < Rounds - 1; i++)
+            unchecked
             {
-                l[i + KeyWords - 1] = (ushort)(((RotR(l[i], Alpha) + _roundKeys[i]) & Mask16) ^ (uint)i);
-                _roundKeys[i + 1] = (ushort)(RotL(_roundKeys[i], Beta) ^ l[i + KeyWords - 1]);
+                for (var i = 0; i < Rounds - 1; i++)
+                {
+                    l[i + KeyWords - 1] = (ushort)(((RotR(l[i], Alpha) + _roundKeys[i]) & Mask16) ^ (uint)i);
+                    _roundKeys[i + 1] = (ushort)(RotL(_roundKeys[i], Beta) ^ l[i + KeyWords - 1]);
+                }
             }
         }
 
@@ -263,11 +266,13 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
 
             var x = BinaryPrimitives.ReadUInt16LittleEndian(plaintext[..2]);
             var y = BinaryPrimitives.ReadUInt16LittleEndian(plaintext.Slice(2, 2));
-
-            for (var i = 0; i < Rounds; i++)
+            unchecked
             {
-                x = (ushort)(((RotR(x, Alpha) + y) & Mask16) ^ _roundKeys[i]);
-                y = (ushort)(RotL(y, Beta) ^ x);
+                for (var i = 0; i < Rounds; i++)
+                {
+                    x = (ushort)(((RotR(x, Alpha) + y) & Mask16) ^ _roundKeys[i]);
+                    y = (ushort)(RotL(y, Beta) ^ x);
+                }
             }
 
             BinaryPrimitives.WriteUInt16LittleEndian(ciphertext[..2], x);
@@ -287,10 +292,13 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
             var x = BinaryPrimitives.ReadUInt16LittleEndian(ciphertext[..2]);
             var y = BinaryPrimitives.ReadUInt16LittleEndian(ciphertext.Slice(2, 2));
 
-            for (var i = Rounds - 1; i >= 0; i--)
+            unchecked
             {
-                y = (ushort)(RotR((uint)(x ^ y), Beta) & Mask16);
-                x = (ushort)(RotL(((uint)(x ^ _roundKeys[i]) - y) & Mask16, Alpha) & Mask16);
+                for (var i = Rounds - 1; i >= 0; i--)
+                {
+                    y = (ushort)(RotR((uint)(x ^ y), Beta) & Mask16);
+                    x = (ushort)(RotL(((uint)(x ^ _roundKeys[i]) - y) & Mask16, Alpha) & Mask16);
+                }
             }
 
             BinaryPrimitives.WriteUInt16LittleEndian(plaintext[..2], x);
@@ -308,7 +316,10 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint RotL(uint v, int n)
         {
-            return ((v << n) | (v >> (WordBits - n))) & Mask16;
+            unchecked
+            {
+                return ((v << n) | (v >> (WordBits - n))) & Mask16;
+            }
         }
 
         /// <summary>
@@ -321,7 +332,10 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint RotR(uint v, int n)
         {
-            return ((v >> n) | (v << (WordBits - n))) & Mask16;
+            unchecked
+            {
+                return ((v >> n) | (v << (WordBits - n))) & Mask16;
+            }
         }
 
         /// <summary>

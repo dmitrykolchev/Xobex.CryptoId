@@ -240,6 +240,45 @@ catch (FormatException ex)
 #### 5. SAST and Compliance Cleanliness
 *   **No Broken Cryptographic Primitives:** Unlike speed-up attempts using MD5, this architecture relies strictly on AES-256 and FNV-1a. It completely bypasses static security analysis (SAST) warnings (such as CWE-327) and compliance blockers (FIPS, PCI-DSS, ISO 27001).
 
+
+### Technical Specification & Features of `Speck-64/128 encoder`
+
+#### 1. Hyper-Compact Encoded Output (11 Characters)
+*   **Minimalist Footprint:** By using a 64-bit block size, the encoder maps a 64-bit `long` ID directly to an 8-byte ciphertext without any padding or initialization vectors. This results in exactly **11 characters** when encoded to URL-safe Base64.
+*   **Ideal for Strict UI/UX Boundaries:** Provides the absolute mathematical minimum length for reversible 64-bit identifier obfuscation, crucial for short-link services, QR codes, and SMS-delivered URLs.
+
+#### 2. Native Thread-Safety & Immutability (Zero Pooling)
+*   **ARX Architecture:** Speck relies exclusively on Addition, Rotation, and XOR (ARX) operations. It does not maintain state or use mutable look-up tables (S-Boxes) during execution.
+*   **Zero Concurrency Overhead:** The implementation is completely thread-safe and immutable after instantiation. It **does not require** `ThreadLocal<T>` or object pooling, eliminating context-switching and garbage collection overhead in highly concurrent environments.
+
+#### 3. High Performance on Non-Accelerated Hardware
+*   **Constant-Time Execution:** ARX operations naturally execute in constant-time on almost all modern CPU architectures. This shields the cipher against cache-timing and side-channel attacks by default.
+*   **Hardware Independence:** Unlike AES, which requires hardware-level support (AES-NI) to run securely and quickly, Speck64/128 delivers exceptional performance on low-power devices, legacy servers, and restricted execution environments (e.g., WebAssembly, IoT, edge compute).
+
+#### 4. Cryptographically Sound Key Schedule
+*   **Domain-Separated KDF:** Uses HKDF-SHA256 to derive a high-entropy 128-bit key. This isolates the key material specifically to the ID encoding domain and prevents cross-protocol key leakage attacks.
+
+------------------------------
+
+### Speck-64/128 vs. AES-256 + FNV-1a Comparison Matrix
+
+The table below outlines the core cryptographic, operational, and architectural trade-offs between the two low-latency ID encoding approaches:
+
+| Feature / Metric | Speck64/128 (Deterministic) | AES-256 Single-Block + FNV-1a |
+| :--- | :--- | :--- |
+| **Output Length (Base64Url)** | **11 characters** (8 bytes of ciphertext) | **22 characters** (16 bytes of ciphertext) |
+| **Integrity Verification (MAC)**| **None.** Decrypting arbitrary data always succeeds, returning a random-looking 64-bit ID. | **64-bit FNV-1a Checksum.** Decryption fails if the decrypted payload checksum does not match. |
+| **Tampering & IDOR Resilience**| **Low.** Relies entirely on the application's authorization layer (ACL/ABAC) after decoding. | **High.** Automatically rejects manipulated or fuzzed ciphertexts before reaching business logic ($P_{\text{forge}} = 2^{-64}$). |
+| **Concurrency / Thread-Safety** | **Naturally Thread-Safe.** No wrappers or pooling required (stateless/immutable after constructor). | **Stateful.** Requires pooling (`ThreadLocal<Aes>` or `ObjectPool<Aes>`) to ensure thread safety of the `Aes` instance. |
+| **Hardware Dependency** | **None.** Runs exceptionally fast on any CPU (ARX design). | **High.** Secure, constant-time execution depends heavily on hardware AES-NI instructions. |
+| **Enterprise & Compliance Audit**| **Risky.** Speck was rejected by ISO/IEC in 2018; often flagged by static analyzers (SAST) and enterprise security auditors. | **Excellent.** AES-256 is universally accepted as a safe industry standard across FIPS, PCI-DSS, and SOC2. |
+
+
+### Architectural Recommendation
+*   Use **Speck64/128** only when **URL length constraint is the absolute highest priority** (e.g., printed URLs, SMS, legacy protocols), and you can guarantee a robust, infallible authorization layer at the API boundary to mitigate IDOR risks.
+*   Use **AES-256 + FNV-1a** for all general-purpose enterprise applications, as it provides built-in tampering rejection, standard compliance, and highly secure isolation of your internal database structure.
+* 
+
 ------------------------------
 ## Benchmark Results
 
