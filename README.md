@@ -34,10 +34,44 @@ Use only for obfuscation of sequential IDs in public URLs/APIs.
 All implementations share a single unified interface, making it easy to swap cryptographic algorithms without changing your business logic:
 
 ```csharp
+/// <summary>
+/// Defines the contract for encrypting and decrypting cryptographic identifiers of type <typeparamref name="T"/>.
+/// </summary>
+/// <typeparam name="T">The data type of the identifier to be encoded/decoded. Must be a value type.</typeparam>
+/// <remarks>
+/// Implementations of this interface should provide encryption and decryption operations that convert
+/// identifiers to and from URL-safe Base64 strings, suitable for use in web URLs and APIs.
+/// </remarks>
 public interface ICryptoIdEncoder<T> where T : struct
 {
+    /// <summary>
+    /// Encrypts an identifier and encodes it to a URL-safe Base64 string.
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <returns>The encrypted identifier as a URL-safe Base64 encoded string.</returns>
     string Encode(T id);
+
+    /// <summary>
+    /// Decodes a URL-safe Base64 string and decrypts it back to the original identifier.
+    /// </summary>
+    /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
+    /// <returns>The decrypted identifier.</returns>
+    /// <exception cref="FormatException">Thrown when the input is not a valid URL-safe Base64 string or contains invalid data.</exception>
     T Decode(ReadOnlySpan<char> urlEncodedBase64);
+
+    /// <summary>
+    /// Gets a value indicating whether the encryption is deterministic (i.e., the same input always produces the same output).
+    /// </summary>
+    public bool IsDeterministic { get; }
+
+    /// <summary>
+    /// Attempts to encode an identifier into a provided character span, returning a boolean indicating success or failure.
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <param name="destination">The span of characters to write the encoded identifier to.</param>
+    /// <param name="charsWritten">When the method returns, contains the number of characters written to the destination span.</param>
+    /// <returns>true if the identifier was successfully encoded; otherwise, false.</returns>
+    bool TryEncode(T id, Span<char> destination, out int charsWritten);
 }
 ```
 
@@ -181,24 +215,29 @@ Intel Core i7-10700KF CPU 3.80GHz (Max: 3.79GHz), 1 CPU, 16 logical and 8 physic
 
 
 ```
-| Method                               | Mean        | Error    | StdDev   | Ratio | RatioSD | Gen0   | Allocated | Alloc Ratio |
-|------------------------------------- |------------:|---------:|---------:|------:|--------:|-------:|----------:|------------:|
-| Encode_Speck64_128                   |    33.69 ns | 0.208 ns | 0.174 ns |  0.12 |    0.00 | 0.0057 |      48 B |        0.40 |
-| Encode_Speck32_64                    |    39.70 ns | 0.294 ns | 0.260 ns |  0.15 |    0.00 | 0.0048 |      40 B |        0.33 |
-| Encode_Skip32                        |   194.95 ns | 1.035 ns | 0.864 ns |  0.72 |    0.00 | 0.0048 |      40 B |        0.33 |
-| Encode_AesGcm                        |   271.91 ns | 1.442 ns | 1.348 ns |  1.00 |    0.01 | 0.0143 |     120 B |        1.00 |
-| Encode_DeterministicAesGcm           |   991.15 ns | 5.284 ns | 4.943 ns |  3.65 |    0.02 | 0.0134 |     120 B |        1.00 |
-| Encode_CompactDeterministicAes       | 1,217.31 ns | 4.792 ns | 4.248 ns |  4.48 |    0.03 | 0.0191 |     160 B |        1.33 |
-| Encode_DeterministicChaCha20Poly1305 | 1,150.02 ns | 5.777 ns | 5.121 ns |  4.23 |    0.03 | 0.0134 |     120 B |        1.00 |
-| Encode_ChaCha20Poly1305              |   427.60 ns | 1.923 ns | 1.705 ns |  1.57 |    0.01 | 0.0143 |     120 B |        1.00 |
-| Decode_Speck64_128                   |    43.15 ns | 0.243 ns | 0.227 ns |  0.16 |    0.00 |      - |         - |        0.00 |
-| Decode_Speck32_64                    |    61.81 ns | 0.153 ns | 0.135 ns |  0.23 |    0.00 |      - |         - |        0.00 |
-| Decode_Skip32                        |   195.62 ns | 0.535 ns | 0.500 ns |  0.72 |    0.00 |      - |         - |        0.00 |
-| Decode_AesGcm                        |   188.40 ns | 0.758 ns | 0.672 ns |  0.69 |    0.00 |      - |         - |        0.00 |
-| Decode_DeterministicAesGcm           |   188.39 ns | 0.577 ns | 0.511 ns |  0.69 |    0.00 |      - |         - |        0.00 |
-| Decode_CompactDeterministicAes       | 1,255.02 ns | 1.375 ns | 1.148 ns |  4.62 |    0.02 | 0.0095 |      88 B |        0.73 |
-| Decode_ChaCha20Poly1305              |   337.66 ns | 1.255 ns | 1.048 ns |  1.24 |    0.01 |      - |         - |        0.00 |
-| Decode_DeterministicChaCha20Poly1305 |   337.05 ns | 0.664 ns | 0.621 ns |  1.24 |    0.01 |      - |         - |        0.00 |
+| Method                                  | Mean        | Error    | StdDev   | Ratio | RatioSD | Gen0   | Allocated | Alloc Ratio |
+|---------------------------------------- |------------:|---------:|---------:|------:|--------:|-------:|----------:|------------:|
+| Encode_Speck64_128                      |    32.57 ns | 0.317 ns | 0.296 ns |  0.12 |    0.00 | 0.0057 |      48 B |        0.40 |
+| TryEncode_Speck64_128                   |    29.69 ns | 0.290 ns | 0.257 ns |  0.11 |    0.00 |      - |         - |        0.00 |
+| Decode_Speck64_128                      |    42.99 ns | 0.100 ns | 0.093 ns |  0.16 |    0.00 |      - |         - |        0.00 |
+| Encode_Speck32_64                       |    39.50 ns | 0.132 ns | 0.110 ns |  0.15 |    0.00 | 0.0048 |      40 B |        0.33 |
+| TryEncode_Speck32_64                    |    35.69 ns | 0.320 ns | 0.283 ns |  0.13 |    0.00 |      - |         - |        0.00 |
+| Decode_Speck32_64                       |    61.96 ns | 0.139 ns | 0.130 ns |  0.23 |    0.00 |      - |         - |        0.00 |
+| Encode_Skip32                           |   194.99 ns | 1.318 ns | 1.169 ns |  0.73 |    0.01 | 0.0048 |      40 B |        0.33 |
+| TryEncode_Skip32                        |   190.14 ns | 0.498 ns | 0.466 ns |  0.71 |    0.00 |      - |         - |        0.00 |
+| Decode_Skip32                           |   195.76 ns | 0.573 ns | 0.536 ns |  0.73 |    0.00 |      - |         - |        0.00 |
+| Encode_AesGcm                           |   268.95 ns | 1.734 ns | 1.622 ns |  1.00 |    0.01 | 0.0143 |     120 B |        1.00 |
+| TryEncode_AesGcm                        |   253.05 ns | 1.007 ns | 0.942 ns |  0.94 |    0.01 |      - |         - |        0.00 |
+| Decode_AesGcm                           |   190.49 ns | 0.585 ns | 0.547 ns |  0.71 |    0.00 |      - |         - |        0.00 |
+| Encode_DeterministicAesGcm              |   975.23 ns | 4.063 ns | 3.601 ns |  3.63 |    0.02 | 0.0134 |     120 B |        1.00 |
+| TryEncode_DeterministicAesGcm           |   966.29 ns | 1.213 ns | 1.076 ns |  3.59 |    0.02 |      - |         - |        0.00 |
+| Decode_DeterministicAesGcm              |   189.76 ns | 0.423 ns | 0.396 ns |  0.71 |    0.00 |      - |         - |        0.00 |
+| Encode_CompactDeterministicAes          |   414.64 ns | 1.760 ns | 1.560 ns |  1.54 |    0.01 | 0.0191 |     160 B |        1.33 |
+| TryEncode_CompactDeterministicAes       |   398.34 ns | 2.117 ns | 1.980 ns |  1.48 |    0.01 | 0.0105 |      88 B |        0.73 |
+| Decode_CompactDeterministicAes          |   418.28 ns | 3.039 ns | 2.843 ns |  1.56 |    0.01 | 0.0105 |      88 B |        0.73 |
+| Encode_DeterministicChaCha20Poly1305    | 1,140.01 ns | 3.412 ns | 3.192 ns |  4.24 |    0.03 | 0.0134 |     120 B |        1.00 |
+| TryEncode_DeterministicChaCha20Poly1305 | 1,119.34 ns | 2.982 ns | 2.789 ns |  4.16 |    0.03 |      - |         - |        0.00 |
+| Decode_DeterministicChaCha20Poly1305    |   336.74 ns | 0.543 ns | 0.453 ns |  1.25 |    0.01 |      - |         - |        0.00 |
 
 ------------------------------
 ## License
