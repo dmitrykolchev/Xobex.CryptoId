@@ -35,21 +35,15 @@ public enum IdCipherAlgorithm
     Skip32,
 
     /// <summary>
-    /// ChaCha20-Poly1305 authenticated encryption algorithm.
-    /// Suitable for encrypting 64-bit (long) identifiers with authentication.
+    /// Deterministic AES-GCM (Advanced Encryption Standard with Galois/Counter Mode) with
+    /// deterministic nonce generation.
     /// </summary>
-    ChaCha20Poly1305,
+    DeterministicAesGcm,
 
     /// <summary>
     /// Deterministic ChaCha20-Poly1305 authenticated encryption algorithm with deterministic nonce generation.
     /// </summary>
     DeterministicChaCha20Poly1305,
-
-    /// <summary>
-    /// Deterministic AES-GCM (Advanced Encryption Standard with Galois/Counter Mode) with
-    /// deterministic nonce generation.
-    /// </summary>
-    DeterministicAesGcm,
 
     /// <summary>
     /// Compact deterministic AES (Advanced Encryption Standard) with deterministic nonce generation.

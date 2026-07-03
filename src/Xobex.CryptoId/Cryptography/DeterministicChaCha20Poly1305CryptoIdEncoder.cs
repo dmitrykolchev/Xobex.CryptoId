@@ -1,4 +1,4 @@
-// <copyright file="ChaCha20Poly1305CryptoIdEncoder.cs" company="Dmitry Kolchev">
+// <copyright file="DeterministicChaCha20Poly1305CryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
@@ -31,7 +31,7 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ChaCha20Poly1305CryptoIdEncoder"/> class.
+    /// Initializes a new instance of the <see cref="DeterministicChaCha20Poly1305CryptoIdEncoder"/> class.
     /// </summary>
     /// <param name="key">
     /// The cryptographic key material (e.g., password, API key, or random string).
@@ -87,8 +87,36 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     /// <returns>The encrypted identifier as a URL-safe Base64 encoded string.</returns>
     public string Encode(long id)
     {
-        // Everything is allocated on the stack - zero heap allocations
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         Span<byte> buffer = stackalloc byte[TotalSize];
+
+        EncryptInternal(buffer, id);
+
+        return Base64Url.EncodeToString(buffer);
+    }
+
+    /// <summary>
+    /// Tries to encode a 64-bit identifier into a URL-safe Base64 string using ChaCha20-Poly1305 encryption.
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <param name="destination">The span to write the encoded string to.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <returns>true if the encoding was successful; otherwise, false.</returns>
+    public bool TryEncode(long id, Span<char> destination, out int charsWritten)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        Span<byte> buffer = stackalloc byte[TotalSize];
+
+        EncryptInternal(buffer, id);
+
+        return Base64Url.TryEncodeToChars(buffer, destination, out charsWritten);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EncryptInternal(Span<byte> buffer, long id)
+    {
         var idBytes = buffer.Slice(NonceSize + TagSize, IdSize);
         BinaryPrimitives.WriteInt64LittleEndian(idBytes, id);
 
@@ -98,10 +126,6 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         var tag = buffer.Slice(NonceSize, TagSize);
 
         Cipher.Encrypt(nonce, idBytes, idBytes, tag);
-
-        // .NET magic: Encodes directly to URL-safe string in a single pass.
-        // This creates exactly one string allocation
-        return Base64Url.EncodeToString(buffer);
     }
 
     /// <summary>
@@ -159,6 +183,11 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     string ICryptoIdEncoder.Encode(object id)
     {
         return Encode((long)id);
+    }
+
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((long)id, destination, out charsWritten);
     }
 
     /// <summary>

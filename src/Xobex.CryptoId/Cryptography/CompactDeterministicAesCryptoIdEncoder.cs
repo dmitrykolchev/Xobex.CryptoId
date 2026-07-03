@@ -36,7 +36,6 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
 {
     private const int BlockSize = 16;
     private const int IdSize = sizeof(long);
-    private const int TagSize = BlockSize - IdSize; // 8 bytes
 
     private static readonly byte[] HkdfAesInfo = "Xobex.AesEcbCompact.Encrypt.v1"u8.ToArray();
     private static readonly byte[] HkdfMacInfo = "Xobex.AesEcbCompact.Mac.v1"u8.ToArray();
@@ -95,6 +94,34 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        Span<byte> encryptedBlock = stackalloc byte[BlockSize];
+
+        EncryptInternal(encryptedBlock, id);
+
+        return Base64Url.EncodeToString(encryptedBlock);
+    }
+
+    /// <summary>
+    /// Attempts to encode a 64-bit ID into a URL-safe Base64 string, writing the result to the provided character span.
+    /// </summary>
+    /// <param name="id">The ID to encode.</param>
+    /// <param name="destination">The span to write the encoded string to.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <returns>true if the encoding was successful; otherwise, false.</returns>
+    public bool TryEncode(long id, Span<char> destination, out int charsWritten)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        Span<byte> encryptedBlock = stackalloc byte[BlockSize];
+
+        EncryptInternal(encryptedBlock, id);
+
+        return Base64Url.TryEncodeToChars(encryptedBlock, destination, out charsWritten);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EncryptInternal(Span<byte> encryptedBlock, long id)
+    {
         Span<byte> block = stackalloc byte[BlockSize];
         var idSpan = block[..IdSize];
         var tagSpan = block[IdSize..];
@@ -102,15 +129,12 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         BinaryPrimitives.WriteInt64LittleEndian(idSpan, id);
 
         // Calculate HMAC from ID to check integrity (without intermediate copies)
-        Span<byte> macResult = stackalloc byte[32];
-        HMACSHA256.HashData(_macKey, idSpan, macResult);
-        macResult[..TagSize].CopyTo(tagSpan);
+        // 2. Вычисляем сверхбыстрый FNV-1a на стеке (~1-2 нс)
+        var hash = ComputeFnv1a64(idSpan);
+        BinaryPrimitives.WriteUInt64LittleEndian(tagSpan, hash);
 
         // Encrypting a block in place (ECB mode without padding for one block)
-        Span<byte> encryptedBlock = stackalloc byte[BlockSize];
         Cipher.EncryptEcb(block, encryptedBlock, PaddingMode.None);
-
-        return Base64Url.EncodeToString(encryptedBlock);
     }
 
     /// <summary>
@@ -136,17 +160,32 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var idSpan = decryptedBlock[..IdSize];
         var tagSpan = decryptedBlock[IdSize..];
 
-        // Checking integrity (avoiding timing attacks via FixedTimeEquals)
-        Span<byte> expectedMac = stackalloc byte[32];
-        HMACSHA256.HashData(_macKey, idSpan, expectedMac);
-
-        if (!CryptographicOperations.FixedTimeEquals(tagSpan, expectedMac[..TagSize]))
+        // 2. Считаем и сверяем FNV-1a
+        var expectedHash = ComputeFnv1a64(idSpan);
+        var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
+        if (expectedHash != actualHash)
         {
             throw new CryptographicException("Integrity check failed: ID cipher text is modified or invalid.");
         }
 
         // Returning the original ID
         return BinaryPrimitives.ReadInt64LittleEndian(idSpan);
+    }
+
+    /// <summary>
+    /// Вычисляет 64-битный некриптографический хеш FNV-1a.
+    /// Алгоритм выполняется за O(N) по байтам, для 8 байт это всего 8 итераций XOR/MUL.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong ComputeFnv1a64(ReadOnlySpan<byte> data)
+    {
+        var hash = 14695981039346656037UL; // FNV offset basis
+        foreach (var b in data)
+        {
+            hash ^= b;
+            hash *= 1099511628211UL; // FNV prime
+        }
+        return hash;
     }
 
     /// <inheritdoc/>
@@ -178,5 +217,10 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((long)id, destination, out charsWritten);
     }
 }

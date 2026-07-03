@@ -87,6 +87,25 @@ public class CompactDeterministicAesCryptoIdEncoderTests : CryptoIdTestBase
     }
 
     [TestMethod]
+    [Description("TryEncode and Decode should round-trip successfully")]
+    public void TryEncodeDecodeRoundTrip_ShouldRecoverOriginalValue()
+    {
+        // Arrange
+        using var encoder = new CompactDeterministicAesCryptoIdEncoder(TestKey, TestSalt);
+        var testValue = 987654321L;
+
+        // Act
+        var encodedBuffer = new char[128];
+        var encoded = encoder.TryEncode(testValue, encodedBuffer, out var written);
+        Assert.IsTrue(encoded, "TryEncode should succeed");
+
+        var decoded = encoder.Decode(encodedBuffer.AsSpan(0, written));
+
+        // Assert
+        Assert.AreEqual(testValue, decoded);
+    }
+
+    [TestMethod]
     [Description("Multiple encodes of same value should produce different ciphertexts (random nonce)")]
     [DataRow(0L)]
     [DataRow(1L)]

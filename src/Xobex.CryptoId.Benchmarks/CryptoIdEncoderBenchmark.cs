@@ -16,63 +16,98 @@ public class CryptoIdEncoderBenchmark
     private const long Int64Id = 12345678901234L;
     private const int Int32Id = 12345;
 
-    private string _encodedString1 = null!;
-    private string _encodedString2 = null!;
-    private string _encodedString3 = null!;
-    private string _encodedString4 = null!;
-    private string _encodedString5 = null!;
+    private char[] _encodedBuffer = new char[128];
 
-    private ICryptoIdEncoder<long> _encoder1 = null!;
-    private ICryptoIdEncoder<long> _encoder2 = null!;
-    private ICryptoIdEncoder<int> _encoder3 = null!;
-    private ICryptoIdEncoder<int> _encoder4 = null!;
-    private ICryptoIdEncoder<long> _encoder5 = null!;
+    private string _encodedStringAes = null!;
+    private string _encodedStringSpeck64 = null!;
+    private string _encodedStringSpeck32 = null!;
+    private string _encodedStringSkip32 = null!;
+    private string _encodedStringCompactDetAes = null!;
+    private string _encodedStringDetAes = null!;
+    private string _encodedStringDetChaCha20 = null!;
+
+    private ICryptoIdEncoder<long> _encoderAes = null!;
+    private ICryptoIdEncoder<long> _encoderSpeck64 = null!;
+    private ICryptoIdEncoder<int> _encoderSpeck32 = null!;
+    private ICryptoIdEncoder<int> _encoderSkip32 = null!;
+    private ICryptoIdEncoder<long> _encoderCompactDetAes = null!;
+    private ICryptoIdEncoder<long> _encoderDetAes = null!;
+    private ICryptoIdEncoder<long> _encoderDetChaCha20 = null!;
 
     [GlobalSetup]
     public void Setup()
     {
         // Initialize Encoders
-        _encoder1 =  CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "Hello World!");
-        _encoder2 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "Hello World!");
-        _encoder3 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "Hello World!");
-        _encoder4 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Skip32, "Hello World!");
-        _encoder5 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.ChaCha20Poly1305, "Hello World!");
+        _encoderSpeck64 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "Hello World!");
+        _encoderSpeck32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "Hello World!");
+
+        _encoderSkip32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Skip32, "Hello World!");
+
+        _encoderAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "Hello World!");
+        _encoderDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicAesGcm, "Hello World!");
+        _encoderCompactDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.CompactDeterministicAes, "Hello World!");
+
+        _encoderDetChaCha20 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicChaCha20Poly1305, "Hello World!");
 
         // Generate strings for decode
-        _encodedString1 = _encoder1.Encode(Int64Id);
-        _encodedString2 = _encoder2.Encode(Int64Id);
-        _encodedString3 = _encoder3.Encode(Int32Id);
-        _encodedString4 = _encoder4.Encode(Int32Id);
-        _encodedString5 = _encoder5.Encode(Int64Id);
+        _encodedStringSpeck64 = _encoderSpeck64.Encode(Int64Id);
+        _encodedStringSpeck32 = _encoderSpeck32.Encode(Int32Id);
+
+        _encodedStringSkip32 = _encoderSkip32.Encode(Int32Id);
+
+        _encodedStringAes = _encoderAes.Encode(Int64Id);
+        _encodedStringDetAes = _encoderDetAes.Encode(Int64Id);
+        _encodedStringCompactDetAes = _encoderCompactDetAes.Encode(Int64Id);
+
+        _encodedStringDetChaCha20 = _encoderDetChaCha20.Encode(Int64Id);
     }
 
+    [Benchmark]
+    public string Encode_Speck64_128() => _encoderSpeck64.Encode(Int64Id);
+    [Benchmark]
+    public bool TryEncode_Speck64_128() => _encoderSpeck64.TryEncode(Int64Id, _encodedBuffer, out _);
+    [Benchmark]
+    public long Decode_Speck64_128() => _encoderSpeck64.Decode(_encodedStringSpeck64);
+
+    [Benchmark]
+    public string Encode_Speck32_64() => _encoderSpeck32.Encode(Int32Id);
+    [Benchmark]
+    public bool TryEncode_Speck32_64() => _encoderSpeck32.TryEncode(Int32Id, _encodedBuffer, out _);
+    [Benchmark]
+    public int Decode_Speck32_64() => _encoderSpeck32.Decode(_encodedStringSpeck32);
+
+    [Benchmark]
+    public string Encode_Skip32() => _encoderSkip32.Encode(Int32Id);
+    [Benchmark]
+    public bool TryEncode_Skip32() => _encoderSkip32.TryEncode(Int32Id, _encodedBuffer, out _);
+    [Benchmark]
+    public int Decode_Skip32() => _encoderSkip32.Decode(_encodedStringSkip32);
+
     [Benchmark(Baseline = true)]
-    public string Encode_AesGcm() => _encoder1.Encode(Int64Id);
+    public string Encode_AesGcm() => _encoderAes.Encode(Int64Id);
+    [Benchmark]
+    public bool TryEncode_AesGcm() => _encoderAes.TryEncode(Int64Id, _encodedBuffer, out _);
+    [Benchmark]
+    public long Decode_AesGcm() => _encoderAes.Decode(_encodedStringAes);
 
     [Benchmark]
-    public string Encode_Speck64_128() => _encoder2.Encode(Int64Id);
+    public string Encode_DeterministicAesGcm() => _encoderDetAes.Encode(Int64Id);
+    [Benchmark]
+    public bool TryEncode_DeterministicAesGcm() => _encoderDetAes.TryEncode(Int64Id, _encodedBuffer, out _);
+    [Benchmark]
+    public long Decode_DeterministicAesGcm() => _encoderDetAes.Decode(_encodedStringDetAes);
 
     [Benchmark]
-    public string Encode_Speck32_64() => _encoder3.Encode(Int32Id);
+    public string Encode_CompactDeterministicAes() => _encoderCompactDetAes.Encode(Int64Id);
+    [Benchmark]
+    public bool TryEncode_CompactDeterministicAes() => _encoderCompactDetAes.TryEncode(Int64Id, _encodedBuffer, out _);
+    [Benchmark]
+    public long Decode_CompactDeterministicAes() => _encoderCompactDetAes.Decode(_encodedStringCompactDetAes);
 
     [Benchmark]
-    public string Encode_Skip32() => _encoder4.Encode(Int32Id);
-
+    public string Encode_DeterministicChaCha20Poly1305() => _encoderDetChaCha20.Encode(Int64Id);
     [Benchmark]
-    public string Encode_ChaCha20Poly1305() => _encoder5.Encode(Int32Id);
-
+    public bool TryEncode_DeterministicChaCha20Poly1305() => _encoderDetChaCha20.TryEncode(Int64Id, _encodedBuffer, out _);
     [Benchmark]
-    public long Decode_AesGcm() => _encoder1.Decode(_encodedString1);
-
-    [Benchmark]
-    public long Decode_Speck64_128() => _encoder2.Decode(_encodedString2);
-
-    [Benchmark]
-    public int Decode_Speck32_64() => _encoder3.Decode(_encodedString3);
-
-    [Benchmark]
-    public int Decode_Skip32() => _encoder4.Decode(_encodedString4);
-
-    [Benchmark]
-    public long Decode_ChaCha20Poly1305() => _encoder5.Decode(_encodedString5);
+    public long Decode_DeterministicChaCha20Poly1305() => _encoderDetChaCha20.Decode(_encodedStringDetChaCha20);
 }

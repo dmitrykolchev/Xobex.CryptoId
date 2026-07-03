@@ -91,6 +91,24 @@ public class Speck64128CryptoIdEncoderTests : CryptoIdTestBase
     }
 
     [TestMethod]
+    [Description("TryEncode and Decode should round-trip successfully")]
+    public void TryEncodeDecodeRoundTrip_ShouldRecoverOriginalValue()
+    {
+        // Arrange
+        var encoder = new Speck64128CryptoIdEncoder(TestKey, TestSalt);
+        var testValue = 987654321L;
+
+        // Act
+        var encodedBuffer = new char[128];
+        var encoded = encoder.TryEncode(testValue, encodedBuffer, out var written);
+        Assert.IsTrue(encoded, "TryEncode should succeed");
+
+        var decoded = encoder.Decode(encodedBuffer.AsSpan(0, written));
+        // Assert
+        Assert.AreEqual(testValue, decoded);
+    }
+
+    [TestMethod]
     [Description("Decode all randomly-encrypted values should recover original")]
     public void Encode_RandomNonce_CanBeDecodedCorrectly()
     {

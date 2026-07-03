@@ -39,8 +39,10 @@ namespace Xobex.Cryptography;
 /// </remarks>
 public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>, ICryptoIdEncoder
 {
+    private const int CipherTextSize = sizeof(long);
     private const int TagSize = 16;
     private const int NonceSize = 12;
+    private const int TotalSize = NonceSize + TagSize + CipherTextSize;
 
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "AES ID encryption v1"u8.ToArray();
@@ -113,24 +115,39 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     /// </remarks>
     public string Encode(long id)
     {
-        const int ciphertextSize = sizeof(long);
-        const int totalSize = NonceSize + TagSize + ciphertextSize;
         // Everything is allocated on the stack - zero heap allocations
+        Span<byte> buffer = stackalloc byte[TotalSize];
+        EncryptInternal(buffer, id);
+        return Base64Url.EncodeToString(buffer);
+    }
 
-        Span<byte> buffer = stackalloc byte[totalSize];
+    /// <summary>
+    /// Attempts to encrypt a 64-bit (long) identifier and encode it to a URL-safe Base64
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <param name="destination">The span to write the encoded string to.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <returns>true if the encoding was successful; otherwise, false.</returns>
+    public bool TryEncode(long id, Span<char> destination, out int charsWritten)
+    {
+        Span<byte> buffer = stackalloc byte[TotalSize];
+        EncryptInternal(buffer, id);
+        return Base64Url.TryEncodeToChars(buffer, destination, out charsWritten);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void EncryptInternal(Span<byte> buffer, long id)
+    {
         var nonce = buffer[..NonceSize];
         var tag = buffer.Slice(NonceSize, TagSize);
-        var ciphertext = buffer.Slice(NonceSize + TagSize, ciphertextSize);
+        var ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
 
         RandomNumberGenerator.Fill(nonce);
         BinaryPrimitives.WriteInt64LittleEndian(ciphertext, id);
 
         Cipher.Encrypt(nonce, ciphertext, ciphertext, tag);
-
-        // .NET magic: Encodes directly to URL-safe string in a single pass.
-        // This creates exactly one string allocation
-        return Base64Url.EncodeToString(buffer);
     }
+
     /// <summary>
     /// Decrypts text to long id
     /// </summary>
@@ -188,6 +205,11 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((long)id, destination, out charsWritten);
     }
 }
 

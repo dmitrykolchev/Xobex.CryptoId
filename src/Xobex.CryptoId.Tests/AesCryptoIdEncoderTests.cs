@@ -1,5 +1,9 @@
+// <copyright file="AesCryptoIdEncoderTests.cs" company="Dmitry Kolchev">
+// Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
+// See LICENSE in the project root for license information
+// </copyright>
+
 using Xobex.Cryptography;
-using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.CryptoId.Tests;
 
@@ -87,6 +91,25 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
     }
 
     [TestMethod]
+    [Description("TryEncode and Decode should round-trip successfully")]
+    public void TryEncodeDecodeRoundTrip_ShouldRecoverOriginalValue()
+    {
+        // Arrange
+        using var encoder = new AesGcmCryptoIdEncoder(TestKey, TestSalt);
+        var testValue = 987654321L;
+
+        // Act
+        var encodedBuffer = new char[128];
+        var encoded = encoder.TryEncode(testValue, encodedBuffer, out var written);
+        Assert.IsTrue(encoded, "TryEncode should succeed");
+
+        var decoded = encoder.Decode(encodedBuffer.AsSpan(0, written));
+
+        // Assert
+        Assert.AreEqual(testValue, decoded);
+    }
+
+    [TestMethod]
     [Description("Multiple encodes of same value should produce different ciphertexts (random nonce)")]
     [DataRow(0L)]
     [DataRow(1L)]
@@ -117,7 +140,7 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
         var testValue = 555555L;
 
         // Act & Assert
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             var encoded = encoder.Encode(testValue);
             var decoded = encoder.Decode(encoded);
@@ -162,7 +185,7 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
         // Arrange
         using var encoder = new AesGcmCryptoIdEncoder(TestKey, TestSalt);
         var encoded = encoder.Encode(123456L);
-        var truncated = encoded.Substring(0, Math.Max(1, encoded.Length - 5));
+        var truncated = encoded[..Math.Max(1, encoded.Length - 5)];
 
         // Act & Assert
         ThrowsException<FormatException>(() =>
@@ -180,7 +203,7 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
 
         // Corrupt the ciphertext by changing a character
         var array = encoded.ToCharArray();
-        array[encoded.Length - 1] = (char)((int)array[encoded.Length - 1] ^ 0xAA);
+        array[encoded.Length - 1] = (char)(array[encoded.Length - 1] ^ 0xAA);
         var corrupted = new string(array);
 
         // Act & Assert
@@ -259,11 +282,9 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
     public void Using_ShouldCallDispose()
     {
         // Arrange & Act
-        using (var encoder = new AesGcmCryptoIdEncoder(TestKey, TestSalt))
-        {
-            var encoded = encoder.Encode(123L);
-            Assert.IsNotNull(encoded);
-        }
+        using var encoder = new AesGcmCryptoIdEncoder(TestKey, TestSalt);
+        var encoded = encoder.Encode(123L);
+        Assert.IsNotNull(encoded);
     }
 
     // Helper method for DataRow generation

@@ -88,17 +88,36 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
     /// <summary>
     /// Encrypts int and encodes result to Base64Url (6 characters).
     /// </summary>
-    /// <param name="value">The 32-bit integer to encrypt.</param>
+    /// <param name="id">The 32-bit integer to encrypt.</param>
     /// <returns>The encrypted identifier as a URL-safe Base64 encoded string.</returns>
-    public string Encode(int value)
+    public string Encode(int id)
     {
         Span<byte> plaintext = stackalloc byte[sizeof(int)];
         Span<byte> ciphertext = stackalloc byte[sizeof(int)];
 
-        BinaryPrimitives.WriteInt32LittleEndian(plaintext, value);
+        BinaryPrimitives.WriteInt32LittleEndian(plaintext, id);
         _cipher.Encrypt(plaintext, ciphertext);
 
         return Base64Url.EncodeToString(ciphertext);
+    }
+
+    /// <summary>
+    /// Attempts to encrypt an integer and encode it to a URL-safe Base64 string,
+    /// writing the result to the provided destination span.
+    /// </summary>
+    /// <param name="id">The 32-bit integer to encrypt.</param>
+    /// <param name="destination">The character span to write the result to.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <returns>true if the encoding was successful; otherwise, false.</returns>
+    public bool TryEncode(int id, Span<char> destination, out int charsWritten)
+    {
+        Span<byte> plaintext = stackalloc byte[sizeof(int)];
+        Span<byte> ciphertext = stackalloc byte[sizeof(int)];
+
+        BinaryPrimitives.WriteInt32LittleEndian(plaintext, id);
+        _cipher.Encrypt(plaintext, ciphertext);
+
+        return Base64Url.TryEncodeToChars(ciphertext, destination, out charsWritten);
     }
 
     /// <summary>
@@ -141,6 +160,11 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((int)id, destination, out charsWritten);
     }
 
     // -------------------------------------------------------------------------

@@ -83,8 +83,22 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     public string Encode(int id)
     {
         var encrypted = _cipher.Encrypt(unchecked((uint)id));
-        Span<byte> ciphertext = stackalloc byte[sizeof(int)];
-        return Base64Url.EncodeToString(MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateReadOnlySpan<uint>(ref encrypted, 1)));
+        var ciphertext = MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateReadOnlySpan<uint>(ref encrypted, 1));
+        return Base64Url.EncodeToString(ciphertext);
+    }
+
+    /// <summary>
+    /// Attempts to encrypt an int and encode it to a URL-safe Base64 string, writing the result to the provided character span.
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <param name="destination">The character span to write the result to.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <returns>true if the encoding was successful; otherwise, false.</returns>
+    public bool TryEncode(int id, Span<char> destination, out int charsWritten)
+    {
+        var encrypted = _cipher.Encrypt(unchecked((uint)id));
+        var ciphertext = MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateReadOnlySpan<uint>(ref encrypted, 1));
+        return Base64Url.TryEncodeToChars(ciphertext, destination, out charsWritten);
     }
 
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
@@ -95,5 +109,10 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     string ICryptoIdEncoder.Encode(object id)
     {
         return Encode((int)id);
+    }
+
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((int)id, destination, out charsWritten);
     }
 }

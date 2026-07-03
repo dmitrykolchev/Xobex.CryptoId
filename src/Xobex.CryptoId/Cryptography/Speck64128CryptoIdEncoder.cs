@@ -98,18 +98,36 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     /// <summary>
     /// Encrypts a 64-bit (long) identifier and encodes it to a URL-safe Base64 string.
     /// </summary>
-    /// <param name="value">The identifier to encrypt.</param>
+    /// <param name="id">The identifier to encrypt.</param>
     /// <returns>The encrypted identifier as a URL-safe Base64 encoded string (approximately 11-12 characters).</returns>
-    public string Encode(long value)
+    public string Encode(long id)
     {
         Span<byte> plaintext = stackalloc byte[sizeof(long)];
         Span<byte> ciphertext = stackalloc byte[sizeof(long)];
 
         // Explicit little-endian - deterministic behavior on any platform
-        BinaryPrimitives.WriteInt64LittleEndian(plaintext, value);
+        BinaryPrimitives.WriteInt64LittleEndian(plaintext, id);
         _cipher.Encrypt(plaintext, ciphertext);
 
         return Base64Url.EncodeToString(ciphertext);
+    }
+
+    /// <summary>
+    /// Attempts to encrypt a 64-bit (long) identifier and encode it to a URL-safe Base64 string,
+    /// </summary>
+    /// <param name="id">The identifier to encrypt.</param>
+    /// <param name="urlEncodedBase64">The span to write the encoded string to.</param>
+    /// <param name="charsWritten">The number of characters written.</param>
+    /// <returns>true if the encoding was successful; otherwise, false.</returns>
+    public bool TryEncode(long id, Span<char> urlEncodedBase64, out int charsWritten)
+    {
+        Span<byte> plaintext = stackalloc byte[sizeof(long)];
+        Span<byte> ciphertext = stackalloc byte[sizeof(long)];
+
+        BinaryPrimitives.WriteInt64LittleEndian(plaintext, id);
+        _cipher.Encrypt(plaintext, ciphertext);
+
+        return Base64Url.TryEncodeToChars(ciphertext, urlEncodedBase64, out charsWritten);
     }
 
     /// <summary>
@@ -152,6 +170,11 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((long)id, destination, out charsWritten);
     }
 
     // -------------------------------------------------------------------------

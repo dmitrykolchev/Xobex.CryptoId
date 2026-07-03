@@ -60,10 +60,9 @@ public class CryptoIdFactory
             result = algorithm switch
             {
                 IdCipherAlgorithm.AesGcm => new AesGcmCryptoIdEncoder(key, salt),
+                IdCipherAlgorithm.DeterministicChaCha20Poly1305 => new DeterministicChaCha20Poly1305CryptoIdEncoder(key, salt),
                 IdCipherAlgorithm.DeterministicAesGcm => new DeterministicAesGcmCryptoIdEncoder(key, salt),
                 IdCipherAlgorithm.CompactDeterministicAes => new CompactDeterministicAesCryptoIdEncoder(key, salt),
-                IdCipherAlgorithm.ChaCha20Poly1305 => new ChaCha20Poly1305CryptoIdEncoder(key, salt),
-                IdCipherAlgorithm.DeterministicChaCha20Poly1305 => new DeterministicChaCha20Poly1305CryptoIdEncoder(key, salt),
                 IdCipherAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
