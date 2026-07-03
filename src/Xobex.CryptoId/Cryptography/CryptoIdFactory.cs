@@ -31,6 +31,31 @@ public class CryptoIdFactory
     }
 
     /// <summary>
+    /// Creates a cryptographic identifier encoder for the specified algorithm.
+    /// </summary>
+    /// <param name="algorithm">The cryptographic algorithm to use.</param>
+    /// <param name="key">The cryptographic key material.</param>
+    /// <param name="salt">Optional salt for HKDF key derivation.</param>
+    /// <returns>An encoder instance implementing <see cref="ICryptoIdEncoder"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when the algorithm is not supported.</exception>
+    public static ICryptoIdEncoder Create(IdCipherAlgorithm algorithm, string key, byte[]? salt = null)
+    {
+        salt ??= DefaultSalt;
+        ICryptoIdEncoder result = algorithm switch
+        {
+            IdCipherAlgorithm.AesGcm => new AesGcmCryptoIdEncoder(key, salt),
+            IdCipherAlgorithm.DeterministicChaCha20Poly1305 => new DeterministicChaCha20Poly1305CryptoIdEncoder(key, salt),
+            IdCipherAlgorithm.DeterministicAesGcm => new DeterministicAesGcmCryptoIdEncoder(key, salt),
+            IdCipherAlgorithm.CompactDeterministicAes => new CompactDeterministicAesCryptoIdEncoder(key, salt),
+            IdCipherAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt),
+            IdCipherAlgorithm.Speck32_64 => new Speck3264CryptoIdEncoder(key, salt),
+            IdCipherAlgorithm.Skip32 => new Skip32CryptoIdEncoder(key, salt),
+            _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
+        };
+        return result;
+    }
+
+    /// <summary>
     /// Creates a cryptographic identifier encoder for the specified algorithm and data type.
     /// </summary>
     /// <typeparam name="T">The data type of identifiers to encode. Supported types: <see cref="long"/> and <see cref="int"/>.</typeparam>

@@ -152,6 +152,12 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
     /// <inheritdoc/>
     public bool IsDeterministic => true;
 
+    /// <inheritdoc/>
+    public Type IdType => typeof(int);
+
+    /// <inheritdoc/>
+    public int IdSizeInBytes => sizeof(int);
+
     string ICryptoIdEncoder.Encode(object id)
     {
         return Encode((int)id);

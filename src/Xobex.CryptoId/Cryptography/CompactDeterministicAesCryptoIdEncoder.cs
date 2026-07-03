@@ -191,6 +191,12 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     /// <inheritdoc/>
     public bool IsDeterministic => true;
 
+    /// <inheritdoc/>
+    public Type IdType => typeof(long);
+
+    /// <inheritdoc/>
+    public int IdSizeInBytes => sizeof(long);
+
     /// <summary>
     /// Releases all resources used by the <see cref="CompactDeterministicAesCryptoIdEncoder"/> instance.
     /// </summary>

@@ -15,19 +15,21 @@ Xobex.CryptoId is a high-performance .NET library designed to protect your datab
 
 ## Skip32, Speck-32/64, Speck-64/128 Notes
 Use only for obfuscation of sequential IDs in public URLs/APIs.
-
-> Do not use for cryptographic protection!
+Do not use for cryptographic protection!
 
 
 ------------------------------
 ## Supported Ciphers
 
-| Cipher | Key Size | Block Size | Compatible Types | Best Used For |
+| Cipher | Key Size | Block Size | Compatible Types | Encoded Length | Best Used For |
 |---|---|---|---|---|
-| AES-GCM | 256-bit | 128-bit | int, long, etc. | High-security environments, web tokens, sensitive data. |
-| Speck-64/128 | 128-bit | 64-bit | long, ulong | Balanced speed and security for standard 64-bit integer IDs. |
-| Speck-32/64 | 64-bit | 32-bit | int, uint, short | Ultra-low latency, tiny payloads, 32-bit integer IDs. |
-| Skip32 | 80-bit | 32-bit | int, uint, short | Low latency, tiny payloads, 32-bit integer IDs. |
+| Nondeterministic AES-GCM | 256-bit | 128-bit | int, long, etc. | 48 chars | High-security environments, web tokens, sensitive data. |
+| Deterministic AES-GCM | 256-bit | 128-bit | int, long, etc. | 48 chars | High-security environments, web tokens, sensitive data. |
+| Compact Deterministic AES-ECB | 256-bit | 128-bit | int, long, etc.| 22 chars | High-security environments, web tokens, sensitive data. |
+| Deterministic ChaCha20-Poly1305 | 256-bit | 128-bit | int, long, etc. | 48 chars | High-security environments, web tokens, sensitive data. |
+| Speck-64/128 | 128-bit | 64-bit | long, ulong | 11 chars | Balanced speed and security for standard 64-bit integer IDs. |
+| Speck-32/64 | 64-bit | 32-bit | int, uint, short | 6 chars | Ultra-low latency, tiny payloads, 32-bit integer IDs. |
+| Skip32 | 80-bit | 32-bit | int, uint, short | 6 chars | Low latency, tiny payloads, 32-bit integer IDs. |
 
 ------------------------------
 ## Core Abstraction

@@ -182,6 +182,12 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     /// <inheritdoc/>
     public bool IsDeterministic => true;
 
+    /// <inheritdoc/>
+    public Type IdType => typeof(long);
+
+    /// <inheritdoc/>
+    public int IdSizeInBytes => sizeof(long);
+
     /// <summary>
     /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
     /// </summary>

@@ -37,4 +37,14 @@ public interface ICryptoIdEncoder
     /// <param name="charsWritten">When the method returns, contains the number of characters written to the destination span.</param>
     /// <returns>true if the identifier was successfully encoded; otherwise, false.</returns>
     bool TryEncode(object id, Span<char> destination, out int charsWritten);
+
+    /// <summary>
+    /// Gets the type of the identifier that this encoder can process.
+    /// </summary>
+    Type IdType { get; }
+
+    /// <summary>
+    /// Gets the size of the identifier in bytes.
+    /// </summary>
+    int IdSizeInBytes { get; }
 }

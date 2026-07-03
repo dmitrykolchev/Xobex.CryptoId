@@ -53,6 +53,12 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     /// <inheritdoc/>
     public bool IsDeterministic => true;
 
+    /// <inheritdoc/>
+    public Type IdType => typeof(int);
+
+    /// <inheritdoc/>
+    public int IdSizeInBytes => sizeof(int);
+
     /// <summary>
     /// Decodes Base64Url and decrypts to int.
     /// </summary>
