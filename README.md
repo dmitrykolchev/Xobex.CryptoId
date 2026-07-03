@@ -43,6 +43,28 @@ Do not use for cryptographic protection!
 | Det. AES-GCM            | jJ-RPdfdRh6wg9WSl2W-zksuq8sbgjoinvxtW0kNpU1f_cc7 | 48 |
 | Det. ChaCha20-Poly1305  | picyFZmOpgO2rpVfTXrIEpfg5eWyQtA-eg6jYYDbnsexQPOM | 48 |
 
+## Choosing the Right Encoder
+
+Select the appropriate implementation based on your application's specific requirements for security, payload size, and performance.
+
+| Algorithm | Security Level | Payload Size (URL) | Performance | Best Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **Speck** | **Low** (Obfuscation) | **Minimal** | **Extreme** | Hiding sequential integer IDs in non-sensitive contexts where performance is the absolute priority. |
+| **Compact AES-GCM** | **High** (SIV Mode) | **Compact** | **High** | **The Recommended Standard** for public-facing APIs and URLs. Provides strong protection against tampering and guessing while remaining URL-friendly. |
+| **AES-GCM+HMAC256** | **Maximum** | **Large** | **Moderate** | Encrypting sensitive data structures where payload size is not a constraint and full AEAD properties are required. |
+
+***
+
+### Key Considerations for Developers:
+
+*   **Security vs. Obfuscation:** 
+    *   Use **Speck** only if you want to prevent casual users from guessing the next ID (e.g., changing `id=100` to `id=101`). It does not protect against sophisticated attackers.
+    *   Use **Compact AES-GCM** if you need to ensure that an attacker cannot forge or modify an ID in a URL, even if they know the structure of your identifiers.
+*   **Payload Size:** 
+    *   The `Compact` variant is specifically engineered to keep the Base64Url string length minimal (approx. 22 characters), making it ideal for SEO and clean URL design.
+*   **Deterministic Behavior:** 
+    *   The `Compact` and `Speck` variants are **deterministic** (the same input produces the same output). This is intentional to allow for consistent URL generation, but it means they are not suitable for encrypting data that requires unique ciphertexts for every operation.
+
 ------------------------------
 ## Core Abstraction
 All implementations share a single unified interface, making it easy to swap cryptographic algorithms without changing your business logic:
