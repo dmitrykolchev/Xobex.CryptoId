@@ -22,6 +22,11 @@ public interface ICryptoIdEncoder
     /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
     /// <returns>The decrypted identifier.</returns>
     object Decode(ReadOnlySpan<char> urlEncodedBase64);
+
+    /// <summary>
+    /// Gets a value indicating whether the encryption is deterministic (i.e., the same input always produces the same output).
+    /// </summary>
+    public bool IsDeterministic { get; }
 }
 /// <summary>
 /// Defines the contract for encrypting and decrypting cryptographic identifiers of type <typeparamref name="T"/>.

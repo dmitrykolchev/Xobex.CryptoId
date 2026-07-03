@@ -50,6 +50,9 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
         _cipher = new Skip32(keyMaterial);
     }
 
+    /// <inheritdoc/>
+    public bool IsDeterministic => true;
+
     /// <summary>
     /// Decodes Base64Url and decrypts to int.
     /// </summary>

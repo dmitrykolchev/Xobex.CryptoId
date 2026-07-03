@@ -149,6 +149,9 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         return BinaryPrimitives.ReadInt64LittleEndian(idSpan);
     }
 
+    /// <inheritdoc/>
+    public bool IsDeterministic => true;
+
     /// <summary>
     /// Releases all resources used by the <see cref="CompactDeterministicAesCryptoIdEncoder"/> instance.
     /// </summary>

@@ -120,6 +120,10 @@ public sealed class ChaCha20Poly1305CryptoIdEncoder : ICryptoIdEncoder<long>, IC
         return Base64Url.EncodeToString(buffer);
     }
 
+    /// <inheritdoc/>
+    public bool IsDeterministic => false;
+
+
     /// <summary>
     /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
     /// </summary>

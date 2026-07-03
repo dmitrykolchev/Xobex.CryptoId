@@ -159,6 +159,10 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
     }
 
+    /// <inheritdoc/>
+    public bool IsDeterministic => true;
+
+
     /// <summary>
     /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
     /// </summary>

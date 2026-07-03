@@ -135,6 +135,9 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
     }
 
+    /// <inheritdoc/>
+    public bool IsDeterministic => true;
+
     /// <summary>
     /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
     /// </summary>

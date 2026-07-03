@@ -130,6 +130,9 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
         return BinaryPrimitives.ReadInt32LittleEndian(plaintext);
     }
 
+    /// <inheritdoc/>
+    public bool IsDeterministic => true;
+
     string ICryptoIdEncoder.Encode(object id)
     {
         return Encode((int)id);
