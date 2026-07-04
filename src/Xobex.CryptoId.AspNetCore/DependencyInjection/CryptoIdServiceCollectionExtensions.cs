@@ -42,8 +42,8 @@ public static class CryptoIdServiceCollectionExtensions
             var entropy = RandomNumberGenerator.GetBytes(64);
             options.Secret = Convert.ToBase64String(entropy);
         }
-        CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret));
-        CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret));
+        CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret, options.Salt));
+        CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret, options.Salt));
 
         services.AddSingleton<ICryptoIdEncoder<int>>(serviceProvider =>
         {

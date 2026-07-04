@@ -25,4 +25,9 @@ public sealed class CryptoIdOptions
     /// Gets or sets the secret key used for encoding and decoding IDs. If not provided, a random secret will be generated.
     /// </summary>
     public string Secret { get; set; } = null!;
+
+    /// <summary>
+    /// Optional salt for HKDF key derivation
+    /// </summary>
+    public byte[]? Salt { get; set; }
 }
