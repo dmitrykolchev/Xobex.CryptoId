@@ -43,7 +43,9 @@ public class CryptoIdEncoderBenchmark
 
         _encoderSkip32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Skip32, "Hello World!");
 
+#pragma warning disable CS0618 // Type or member is obsolete
         _encoderAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "Hello World!");
+#pragma warning restore CS0618 // Type or member is obsolete
         _encoderDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicAesGcm, "Hello World!");
         _encoderCompactDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.CompactDeterministicAes, "Hello World!");
 

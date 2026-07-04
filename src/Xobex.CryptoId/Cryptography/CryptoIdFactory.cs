@@ -41,6 +41,7 @@ public class CryptoIdFactory
     public static ICryptoIdEncoder Create(IdCipherAlgorithm algorithm, string key, byte[]? salt = null)
     {
         salt ??= DefaultSalt;
+#pragma warning disable CS0618 // Type or member is obsolete
         ICryptoIdEncoder result = algorithm switch
         {
             IdCipherAlgorithm.AesGcm => new AesGcmCryptoIdEncoder(key, salt),
@@ -52,6 +53,7 @@ public class CryptoIdFactory
             IdCipherAlgorithm.Skip32 => new Skip32CryptoIdEncoder(key, salt),
             _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
         };
+#pragma warning restore CS0618 // Type or member is obsolete
         return result;
     }
 
@@ -82,6 +84,7 @@ public class CryptoIdFactory
         salt ??= DefaultSalt;
         if (typeof(T) == typeof(long))
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             result = algorithm switch
             {
                 IdCipherAlgorithm.AesGcm => new AesGcmCryptoIdEncoder(key, salt),
@@ -91,6 +94,7 @@ public class CryptoIdFactory
                 IdCipherAlgorithm.Speck64_128 => new Speck64128CryptoIdEncoder(key, salt),
                 _ => throw new ArgumentException("unsupported algorithm", nameof(algorithm))
             };
+#pragma warning restore CS0618 // Type or member is obsolete
         }
         else if (typeof(T) == typeof(int))
         {

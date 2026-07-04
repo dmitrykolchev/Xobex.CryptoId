@@ -1,7 +1,13 @@
+// <copyright file="CryptoIdEncoderTests.cs" company="Dmitry Kolchev">
+// Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
+// See LICENSE in the project root for license information
+// </copyright>
+
 using Xobex.Cryptography;
-using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.CryptoId.Tests;
+
+#pragma warning disable CS0618 // Type or member is obsolete
 
 /// <summary>
 /// Tests for the CryptoIdFactory factory class and IdCiperAlgorithm enum.
@@ -139,3 +145,4 @@ public class CryptoIdEncoderTests : CryptoIdTestBase
         Assert.AreEqual(testValue, decoded);
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete

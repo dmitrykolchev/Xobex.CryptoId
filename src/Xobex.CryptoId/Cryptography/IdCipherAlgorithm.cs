@@ -14,6 +14,7 @@ public enum IdCipherAlgorithm
     /// AES-GCM (Advanced Encryption Standard with Galois/Counter Mode).
     /// Suitable for encrypting 64-bit (long) identifiers with authentication.
     /// </summary>
+    [Obsolete("Use CompactDeterministicAes or DeterministicAesGcm instead.")]
     AesGcm,
 
     /// <summary>
