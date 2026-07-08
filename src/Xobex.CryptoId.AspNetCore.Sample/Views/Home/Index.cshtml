@@ -1,11 +1,12 @@
 ﻿@using Xobex.CryptoId
+@using Xobex.Cryptography
 @{
     ViewData["Title"] = "Home Page";
 
-    var image = new ImageModel()
+    var algo32Default = new ImageModel()
     {
         Id = (Int32CryptoId)1234,
-        Name = "Image1234"
+        Name = "Default Int32 From DI"
     };
 }
 
@@ -15,14 +16,14 @@
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-    @for(int index = 1; index <= 2; ++index)
+    @for(int index = 1; index <= 3; ++index)
     {
         int int32Value = Random.Shared.Next(100000);
         <p>
         @Html.ActionLink($"Action Link id={int32Value}", $"GetItem{index}", "Home", new { id = int32Encoder.Encode(int32Value)} )
         </p>
     }
-    @for (int index = 3; index <= 5; ++index)
+    @for (int index = 4; index <= 6; ++index)
     {
         long int64Value = Random.Shared.Next(100000);
         <p>
@@ -36,6 +37,30 @@
         </p>
     }
     <pre>
-        @Json.Serialize(image);
+        @foreach(var algo in Enum.GetValues<IdCipherAlgorithm>())
+        {
+            var encoder = CryptoIdFactory.Create(algo, "secret");
+            if (encoder.IdSizeInBytes == sizeof(int))
+            {
+                var algo32 = new
+                {
+                    id = encoder.Encode(123456789),
+                    name = algo.ToString()
+                };
+                @Json.Serialize(algo32)
+                <br />
+            }
+            else
+            {
+                var algo64 = new
+                {
+                    id = encoder.Encode(123456789L),
+                    name = algo.ToString()
+                };
+                @Json.Serialize(algo64)
+                <br />
+            }
+        }
+        @Json.Serialize(algo32Default);
     </pre>
 </div>
