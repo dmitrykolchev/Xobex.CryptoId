@@ -16,6 +16,7 @@ public class Program
         builder.Services.AddCryptoId(cryptoIdOptions);
         Console.WriteLine($"cryptoIdOptions secret: {cryptoIdOptions.Secret}");
         // Add services to the container.
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddControllersWithViews();
 
         var app = builder.Build();

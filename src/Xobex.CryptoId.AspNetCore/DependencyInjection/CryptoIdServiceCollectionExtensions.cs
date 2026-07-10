@@ -45,6 +45,10 @@ public static class CryptoIdServiceCollectionExtensions
         CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret, options.Salt));
         CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret, options.Salt));
 
+        services.AddHttpContextAccessor();
+
+        services.ConfigureOptions<CryptoIdConverterJsonOptions>();
+
         services.AddSingleton<ICryptoIdEncoder<int>>(serviceProvider =>
         {
             return CryptoIdRegistry.Int32Encoder;

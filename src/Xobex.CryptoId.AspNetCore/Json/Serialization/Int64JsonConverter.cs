@@ -55,6 +55,7 @@ public sealed class Int64JsonConverter : CryptoIdJsonConverterBase<long>
         if (!IsKeyed)
         {
             writer.WriteStringValue(CryptoIdRegistry.Int64Encoder.Encode(value));
+            return;
         }
         writer.WriteStringValue(CryptoIdRegistry.Get<long>(Key!).Encode(value));
     }
