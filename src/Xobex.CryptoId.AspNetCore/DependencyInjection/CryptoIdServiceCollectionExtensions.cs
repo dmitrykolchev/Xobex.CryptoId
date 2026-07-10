@@ -59,4 +59,33 @@ public static class CryptoIdServiceCollectionExtensions
         });
         return services;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="serviceKey"></param>
+    /// <param name="algorithm"></param>
+    /// <param name="secret"></param>
+    /// <param name="salt"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static IServiceCollection AddKeyedEncoder(this IServiceCollection services, string serviceKey, IdCipherAlgorithm algorithm, string secret, byte[]? salt)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(serviceKey);
+        ArgumentNullException.ThrowIfNullOrEmpty(secret);
+        if (algorithm is IdCipherAlgorithm.Skip32 or IdCipherAlgorithm.Speck32_64)
+        {
+            var encoder = CryptoIdFactory.Create<int>(algorithm, secret, salt);
+            CryptoIdRegistry.Register(serviceKey, (ICryptoIdEncoder)encoder);
+            services.AddKeyedSingleton(serviceKey, encoder);
+        }
+        else
+        {
+            var encoder = CryptoIdFactory.Create<long>(algorithm, secret, salt);
+            CryptoIdRegistry.Register(serviceKey, (ICryptoIdEncoder)encoder);
+            services.AddKeyedSingleton(serviceKey, encoder);
+        }
+        return services;
+    }
 }

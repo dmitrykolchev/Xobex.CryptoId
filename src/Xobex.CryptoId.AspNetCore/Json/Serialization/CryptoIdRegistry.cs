@@ -3,6 +3,8 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Xobex.Cryptography.Abstractions;
 
@@ -13,6 +15,8 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// </summary>
 public static class CryptoIdRegistry
 {
+    internal const string DefaultInt32EncoderRegistryKey = "{D78ABD88-041B-4234-BF5A-33E5673701B1}";
+    internal const string DefaultInt64EncoderRegistryKey = "{CFF4784B-51E7-4D32-B222-BAB3FF90B5F0}";
     /// <summary>
     /// Initialized while DI container is being built. This is a static field to ensure that
     /// the encoder is shared across all instances of the converter.
@@ -24,6 +28,8 @@ public static class CryptoIdRegistry
     /// the encoder is shared across all instances of the converter.
     /// </summary>
     internal static ICryptoIdEncoder<long>? _int64encoder;
+
+    internal static ConcurrentDictionary<string, ICryptoIdEncoder> _registry = [];
 
     /// <summary>
     /// Registers the encoder for int and long types. This method should be
@@ -47,6 +53,75 @@ public static class CryptoIdRegistry
     {
         ArgumentNullException.ThrowIfNull(encoder);
         _int64encoder = encoder;
+    }
+
+    /// <summary>
+    ///  
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="encoder"></param>
+    /// <returns></returns>
+    public static bool TryRegister(string key, ICryptoIdEncoder encoder)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(encoder);
+        return _registry.TryAdd(key, encoder);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="encoder"></param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static void Register(string key, ICryptoIdEncoder encoder)
+    {
+        if(!TryRegister(key, encoder))
+        {
+            throw new InvalidOperationException($"Cannot register encoder with key {key}");
+        }
+    }
+
+    /// <summary>
+    ///  
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static bool TryGet(string key, [NotNullWhen(true)] out ICryptoIdEncoder? value)
+    {
+        return _registry.TryGetValue(key, out value);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static ICryptoIdEncoder Get(string key)
+    {
+        if (TryGet(key, out var result))
+        {
+            return result;
+        }
+        throw new ArgumentException($"encoder with key = ({key}) was not registered");
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static ICryptoIdEncoder<T> Get<T>(string key) where T: struct
+    {
+        if (TryGet(key, out var result))
+        {
+            return (ICryptoIdEncoder<T>)result;
+        }
+        throw new ArgumentException($"encoder with key = ({key}) was not registered");
     }
 
     /// <summary>

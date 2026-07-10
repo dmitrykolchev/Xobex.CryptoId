@@ -4,7 +4,6 @@
 // </copyright>
 
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Xobex.CryptoId.Json.Serialization;
 
@@ -13,12 +12,20 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// custom serialization and deserialization of cryptographically
 /// encoded integer identifiers.
 /// </summary>
-public sealed class Int32JsonConverter : JsonConverter<int>
+public sealed class Int32JsonConverter : CryptoIdJsonConverterBase<int>
 {
     /// <summary>
     /// Initializes a new instance of the Int32JsonConverter class.
     /// </summary>
     public Int32JsonConverter()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the Int32JsonConverter class
+    /// </summary>
+    /// <param name="registryKey">registry key of encoder</param>
+    public Int32JsonConverter(string registryKey) : base(registryKey)
     {
     }
 
@@ -31,7 +38,11 @@ public sealed class Int32JsonConverter : JsonConverter<int>
     /// <returns></returns>
     public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return CryptoIdRegistry.Int32Encoder.Decode(reader.GetString());
+        if (!IsKeyed)
+        {
+            return CryptoIdRegistry.Int32Encoder.Decode(reader.GetString());
+        }
+        return CryptoIdRegistry.Get<int>(Key).Decode(reader.GetString());
     }
 
     /// <summary>
@@ -42,6 +53,10 @@ public sealed class Int32JsonConverter : JsonConverter<int>
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(CryptoIdRegistry.Int32Encoder.Encode(value));
+        if (!IsKeyed)
+        {
+            writer.WriteStringValue(CryptoIdRegistry.Int32Encoder.Encode(value));
+        }
+        writer.WriteStringValue(CryptoIdRegistry.Get<int>(Key!).Encode(value));
     }
 }
