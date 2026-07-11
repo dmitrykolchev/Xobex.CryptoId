@@ -45,10 +45,6 @@ public static class CryptoIdServiceCollectionExtensions
         CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret, options.Salt));
         CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret, options.Salt));
 
-        services.AddHttpContextAccessor();
-
-        services.ConfigureOptions<CryptoIdConverterJsonOptions>();
-
         services.AddSingleton<ICryptoIdEncoder<int>>(serviceProvider =>
         {
             return CryptoIdRegistry.Int32Encoder;
@@ -74,7 +70,7 @@ public static class CryptoIdServiceCollectionExtensions
     /// <param name="salt"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public static IServiceCollection AddKeyedEncoder(this IServiceCollection services, string serviceKey, IdCipherAlgorithm algorithm, string secret, byte[]? salt)
+    public static IServiceCollection AddKeyedEncoder(this IServiceCollection services, string serviceKey, IdCipherAlgorithm algorithm, string secret, byte[]? salt = null)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(serviceKey);
         ArgumentNullException.ThrowIfNullOrEmpty(secret);

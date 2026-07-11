@@ -3,6 +3,7 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
+using Xobex.Cryptography;
 using Xobex.CryptoId.DependencyInjection;
 
 namespace Xobex.CryptoId.AspNetCore.Sample;
@@ -14,6 +15,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         var cryptoIdOptions = new CryptoIdOptions();
         builder.Services.AddCryptoId(cryptoIdOptions);
+        builder.Services.AddKeyedEncoder("DetAes", IdCipherAlgorithm.CompactDeterministicAes, "my_secret");
+
         Console.WriteLine($"cryptoIdOptions secret: {cryptoIdOptions.Secret}");
         // Add services to the container.
         builder.Services.AddHttpContextAccessor();

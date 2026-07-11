@@ -66,6 +66,15 @@ public readonly struct Int64CryptoId : IEquatable<Int64CryptoId>
     }
 
     /// <summary>
+    /// Defines an explicit conversion from int to Int64CryptoId, allowing the creation of an Int64CryptoId from a int integer value.
+    /// </summary>
+    /// <param name="value"></param>
+    public static explicit operator Int64CryptoId(int value)
+    {
+        return new Int64CryptoId(value);
+    }
+
+    /// <summary>
     /// Determines whether the current Int64CryptoId is equal to another Int64CryptoId instance.
     /// </summary>
     /// <param name="other"></param>

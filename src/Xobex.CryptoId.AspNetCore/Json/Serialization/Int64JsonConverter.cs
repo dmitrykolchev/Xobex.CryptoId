@@ -4,7 +4,7 @@
 // </copyright>
 
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.CryptoId.Json.Serialization;
 
@@ -13,19 +13,23 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// </summary>
 public sealed class Int64JsonConverter : CryptoIdJsonConverterBase<long>
 {
+    private readonly ICryptoIdEncoder<long> _encoder;
+
     /// <summary>
     /// Initializes a new instance of the Int64JsonConverter class.
     /// </summary>
     public Int64JsonConverter()
     {
+        _encoder = CryptoIdRegistry.Int64Encoder ?? throw new InvalidOperationException("encoder not registered");
     }
 
     /// <summary>
     /// Initializes a new instance of the Int32JsonConverter class
     /// </summary>
     /// <param name="registryKey">registry key of encoder</param>
-    public Int64JsonConverter(string registryKey): base(registryKey)
+    public Int64JsonConverter(string registryKey) : base(registryKey)
     {
+        _encoder = (ICryptoIdEncoder<long>)CryptoIdRegistry.Get(registryKey);
     }
 
     /// <summary>
@@ -37,11 +41,7 @@ public sealed class Int64JsonConverter : CryptoIdJsonConverterBase<long>
     /// <returns></returns>
     public override long Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!IsKeyed)
-        {
-            return CryptoIdRegistry.Int64Encoder.Decode(reader.GetString());
-        }
-        return CryptoIdRegistry.Get<long>(Key).Decode(reader.GetString());
+        return _encoder.Decode(reader.GetString());
     }
 
     /// <summary>
@@ -52,11 +52,6 @@ public sealed class Int64JsonConverter : CryptoIdJsonConverterBase<long>
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, long value, JsonSerializerOptions options)
     {
-        if (!IsKeyed)
-        {
-            writer.WriteStringValue(CryptoIdRegistry.Int64Encoder.Encode(value));
-            return;
-        }
-        writer.WriteStringValue(CryptoIdRegistry.Get<long>(Key!).Encode(value));
+        writer.WriteStringValue(_encoder.Encode(value));
     }
 }

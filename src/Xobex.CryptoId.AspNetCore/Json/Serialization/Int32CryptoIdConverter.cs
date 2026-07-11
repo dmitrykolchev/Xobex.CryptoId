@@ -4,6 +4,7 @@
 // </copyright>
 
 using System.Text.Json;
+using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.CryptoId.Json.Serialization;
 
@@ -12,11 +13,13 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// </summary>
 public sealed class Int32CryptoIdConverter : CryptoIdJsonConverterBase<Int32CryptoId>
 {
+    private readonly ICryptoIdEncoder<int> _encoder;
     /// <summary>
     /// Initializes a new instance of the Int32CryptoIdConverter class.
     /// </summary>
     public Int32CryptoIdConverter()
     {
+        _encoder = CryptoIdRegistry.Int32Encoder ?? throw new InvalidOperationException("encoder not registered");
     }
 
     /// <summary>
@@ -25,6 +28,7 @@ public sealed class Int32CryptoIdConverter : CryptoIdJsonConverterBase<Int32Cryp
     /// <param name="registryKey"></param>
     public Int32CryptoIdConverter(string registryKey) : base(registryKey)
     {
+        _encoder = (ICryptoIdEncoder<int>)CryptoIdRegistry.Get(registryKey);
     }
 
     /// <summary>
@@ -36,11 +40,7 @@ public sealed class Int32CryptoIdConverter : CryptoIdJsonConverterBase<Int32Cryp
     /// <returns></returns>
     public override Int32CryptoId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!IsKeyed)
-        {
-            return (Int32CryptoId)CryptoIdRegistry.Int32Encoder.Decode(reader.GetString());
-        }
-        return (Int32CryptoId)CryptoIdRegistry.Get<int>(Key).Decode(reader.GetString());
+        return (Int32CryptoId)_encoder.Decode(reader.GetString());
     }
 
     /// <summary>
@@ -51,11 +51,6 @@ public sealed class Int32CryptoIdConverter : CryptoIdJsonConverterBase<Int32Cryp
     /// <param name="options"></param>
     public override void Write(Utf8JsonWriter writer, Int32CryptoId value, JsonSerializerOptions options)
     {
-        if (!IsKeyed)
-        {
-            writer.WriteStringValue(CryptoIdRegistry.Int32Encoder.Encode(value.Value));
-            return;
-        }
-        writer.WriteStringValue(CryptoIdRegistry.Get<int>(Key!).Encode(value.Value));
+        writer.WriteStringValue(_encoder.Encode(value.Value));
     }
 }

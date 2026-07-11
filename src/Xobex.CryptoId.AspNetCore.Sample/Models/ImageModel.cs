@@ -3,11 +3,14 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
+using Xobex.CryptoId.Json.Serialization;
+
 namespace Xobex.CryptoId.AspNetCore.Sample.Models;
 
 public class ImageModel
 {
-    public Int32CryptoId Id { get; set; }
+    [CryptoIdJsonConverter("DetAes")]
+    public Int64CryptoId Id { get; set; }
 
     public string? Name { get; set; }
 }

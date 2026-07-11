@@ -15,8 +15,6 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// </summary>
 public static class CryptoIdRegistry
 {
-    internal const string DefaultInt32EncoderRegistryKey = "{D78ABD88-041B-4234-BF5A-33E5673701B1}";
-    internal const string DefaultInt64EncoderRegistryKey = "{CFF4784B-51E7-4D32-B222-BAB3FF90B5F0}";
     /// <summary>
     /// Initialized while DI container is being built. This is a static field to ensure that
     /// the encoder is shared across all instances of the converter.
