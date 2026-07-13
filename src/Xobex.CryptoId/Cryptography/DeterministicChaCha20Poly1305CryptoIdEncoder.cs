@@ -170,10 +170,17 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
 
         Span<byte> buffer = stackalloc byte[TotalSize];
 
-        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+        try
         {
-            return false; 
+            // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
+            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+            {
+                return false;
+            }
+        }
+        catch (FormatException)
+        {
+            return false;
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];

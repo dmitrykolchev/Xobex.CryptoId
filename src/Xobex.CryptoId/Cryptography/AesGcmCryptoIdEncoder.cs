@@ -176,7 +176,14 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
         Span<byte> buffer = stackalloc byte[TotalSize];
         value = default;
         // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+        try
+        {
+            if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+            {
+                return false;
+            }
+        }
+        catch(FormatException)
         {
             return false;
         }

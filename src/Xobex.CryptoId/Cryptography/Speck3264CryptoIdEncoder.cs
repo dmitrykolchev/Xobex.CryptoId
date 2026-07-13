@@ -155,8 +155,15 @@ public sealed class Speck3264CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdE
         Span<byte> ciphertext = stackalloc byte[sizeof(int)];
         Span<byte> plaintext = stackalloc byte[sizeof(int)];
         value = default;
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
-            || bytesWritten != sizeof(int))
+        try
+        {
+            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
+                || bytesWritten != sizeof(int))
+            {
+                return false;
+            }
+        }
+        catch (FormatException)
         {
             return false;
         }

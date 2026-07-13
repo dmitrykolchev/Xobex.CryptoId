@@ -181,7 +181,14 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         value = default;
         Span<byte> encryptedBlock = stackalloc byte[BlockSize];
 
-        if (!Base64Url.TryDecodeFromChars(text, encryptedBlock, out var bytesWritten) || bytesWritten != BlockSize)
+        try
+        {
+            if (!Base64Url.TryDecodeFromChars(text, encryptedBlock, out var bytesWritten) || bytesWritten != BlockSize)
+            {
+                return false;
+            }
+        }
+        catch (FormatException)
         {
             return false;
         }

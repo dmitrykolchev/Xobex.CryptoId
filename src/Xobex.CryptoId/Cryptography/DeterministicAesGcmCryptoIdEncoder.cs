@@ -175,10 +175,17 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         }
         Span<byte> buffer = stackalloc byte[TotalSize];
 
-        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+        try
         {
-            throw new FormatException($"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
+            // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
+            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+            {
+                throw new FormatException($"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
+            }
+        }
+        catch (FormatException)
+        {
+            return false;
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];

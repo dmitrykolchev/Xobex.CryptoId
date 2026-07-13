@@ -166,11 +166,19 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
         Span<byte> plaintext = stackalloc byte[sizeof(long)];
 
         value = default;
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
-            || bytesWritten != sizeof(long))
+        try
+        {
+            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
+                || bytesWritten != sizeof(long))
+            {
+                return false;
+            }
+        }
+        catch (FormatException)
         {
             return false;
         }
+
         _cipher.Decrypt(ciphertext, plaintext);
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
         return true;
