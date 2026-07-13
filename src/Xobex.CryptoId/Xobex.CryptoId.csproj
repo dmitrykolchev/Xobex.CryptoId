@@ -8,7 +8,7 @@
     <PackageId>Xobex.CryptoId</PackageId>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Secure Database ID Obfuscation Library</Title>
-    <Version>1.0.20</Version>
+    <Version>1.0.21</Version>
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <FileVersion>$(Version).0</FileVersion>
   </PropertyGroup>
