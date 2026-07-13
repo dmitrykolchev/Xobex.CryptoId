@@ -81,6 +81,21 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
         return unchecked((int)decrypted);
     }
 
+    /// <inheritdoc/>
+    public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out int value)
+    {
+        Span<byte> ciphertext = stackalloc byte[sizeof(int)];
+        value = default;
+        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
+            || bytesWritten != sizeof(int))
+        {
+            return false;
+        }
+        var decrypted = _cipher.Decrypt(MemoryMarshal.Cast<byte, uint>(ciphertext)[0]);
+        value = unchecked((int)decrypted);
+        return true;
+    }
+
     /// <summary>
     /// Encrypts int and encodes result to Base64Url.
     /// </summary>
@@ -110,6 +125,13 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    {
+        var result = TryDecode(urlEncodedBase64, out var intValue);
+        value = intValue;
+        return result;
     }
 
     string ICryptoIdEncoder.Encode(object id)

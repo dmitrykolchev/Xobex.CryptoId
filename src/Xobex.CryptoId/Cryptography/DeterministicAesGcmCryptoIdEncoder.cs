@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using Xobex.Cryptography.Abstractions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Xobex.Cryptography;
 
@@ -41,14 +42,16 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
 {
     private const int TagSize = 16;
     private const int NonceSize = 12;
-    private const int IdSize = sizeof(long);
-    private const int TotalSize = NonceSize + TagSize + IdSize;
+    private const int CipherTextSize = sizeof(long);
+    private const int TotalSize = NonceSize + TagSize + CipherTextSize;
+
 
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "AES ID encryption v1"u8.ToArray();
     private static readonly byte[] NonceKeyInfo = "Xobex.AesGcm.CryptoId.nonce.v1"u8.ToArray();
 
-    private readonly ThreadLocal<AesGcm> _cipher;
+    private readonly DisposableObjectPool<AesGcm> _pool;
+    private readonly byte[] _keyMaterial;
     private readonly byte[] _nonceKey;
     private bool _disposed;
 
@@ -76,30 +79,15 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
 
         var ikm = Encoding.UTF8.GetBytes(key);
         _nonceKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, 32, salt, NonceKeyInfo);
-
         // HKDF-SHA256: ikm → 32-байтный ключ для AES
-        var keyMaterial = HKDF.DeriveKey(
+        _keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: ikm,
             outputLength: 32,
             salt: salt,
             info: HkdfInfo);
-        _cipher = new(() => new AesGcm(keyMaterial, TagSize), trackAllValues: true);
-    }
-
-    /// <summary>
-    /// Gets the thread-local AES-GCM cipher instance.
-    /// </summary>
-    /// <value>The AES-GCM cipher instance for this thread.</value>
-    /// <exception cref="ObjectDisposedException">Thrown if the encoder has been disposed.</exception>
-    private AesGcm Cipher
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            return _cipher.Value!;
-        }
+        _pool = new DisposableObjectPool<AesGcm>(() => new AesGcm(_keyMaterial, TagSize));
+        CryptographicOperations.ZeroMemory(ikm);
     }
 
     /// <summary>
@@ -137,15 +125,15 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EncryptInternal(Span<byte> buffer, long id)
     {
-        var idBytes = buffer.Slice(NonceSize + TagSize, IdSize);
+        var idBytes = buffer.Slice(NonceSize + TagSize, CipherTextSize);
         BinaryPrimitives.WriteInt64LittleEndian(idBytes, id);
 
         var nonce = buffer[..NonceSize];
         ComputeNonce(idBytes, nonce);
 
         var tag = buffer.Slice(NonceSize, TagSize);
-
-        Cipher.Encrypt(nonce, idBytes, idBytes, tag);
+        using var cipher = _pool.LeaseObject();
+        cipher.Instance.Encrypt(nonce, idBytes, idBytes, tag);
     }
 
     /// <summary>
@@ -158,25 +146,58 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        const int ciphertextSize = sizeof(long);
-        const int totalSize = NonceSize + TagSize + ciphertextSize;
-
-        Span<byte> buffer = stackalloc byte[totalSize];
+        Span<byte> buffer = stackalloc byte[TotalSize];
 
         // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != totalSize)
+        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
         {
-            throw new FormatException($"Invalid Base64Url format: expected {totalSize} bytes after decoding.");
+            throw new FormatException($"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];
         ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
-        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, ciphertextSize);
+        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
 
-        Span<byte> plaintext = stackalloc byte[ciphertextSize];
-        Cipher.Decrypt(nonce, ciphertext, tag, plaintext);
+        Span<byte> plaintext = stackalloc byte[CipherTextSize];
+        using var cipher = _pool.LeaseObject();
+        cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         // Read int64 with correct byte orderт
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+    }
+
+    /// <inheritdoc/>
+    public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
+    {
+        value = default;
+        if(_disposed)
+        {
+            return false;
+        }
+        Span<byte> buffer = stackalloc byte[TotalSize];
+
+        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
+        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+        {
+            throw new FormatException($"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
+        }
+
+        ReadOnlySpan<byte> nonce = buffer[..NonceSize];
+        ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
+        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
+
+        Span<byte> plaintext = stackalloc byte[CipherTextSize];
+        try
+        {
+            using var cipher = _pool.LeaseObject();
+            cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
+        }
+        catch(CryptographicException)
+        {
+            return false;
+        }
+        // Read int64 with correct byte orderт
+        value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        return true;
     }
 
     /// <inheritdoc/>
@@ -198,11 +219,9 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
             return;
         }
         _disposed = true;
-        foreach (var item in _cipher.Values)
-        {
-            item.Dispose();
-        }
-        _cipher.Dispose();
+        _pool.Dispose();
+        CryptographicOperations.ZeroMemory(_keyMaterial);
+        CryptographicOperations.ZeroMemory(_nonceKey);
     }
 
     string ICryptoIdEncoder.Encode(object id)
@@ -210,14 +229,20 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         return Encode((long)id);
     }
 
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((long)id, destination, out charsWritten);
+    }
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
     }
 
-    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
     {
-        return TryEncode((long)id, destination, out charsWritten);
+        var result = TryDecode(urlEncodedBase64, out var id);
+        value = id;
+        return result;
     }
 
     /// <summary>

@@ -160,6 +160,23 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     }
 
     /// <inheritdoc/>
+    public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
+    {
+        Span<byte> ciphertext = stackalloc byte[sizeof(long)];
+        Span<byte> plaintext = stackalloc byte[sizeof(long)];
+
+        value = default;
+        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
+            || bytesWritten != sizeof(long))
+        {
+            return false;
+        }
+        _cipher.Decrypt(ciphertext, plaintext);
+        value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public bool IsDeterministic => true;
 
     /// <inheritdoc/>
@@ -176,6 +193,13 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    {
+        var result = TryDecode(urlEncodedBase64, out var longValue);
+        value = longValue;
+        return result;
     }
 
     bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)

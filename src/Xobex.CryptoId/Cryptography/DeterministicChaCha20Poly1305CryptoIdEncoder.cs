@@ -19,8 +19,8 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
 {
     private const int TagSize = 16;
     private const int NonceSize = 12;
-    private const int IdSize = sizeof(long);
-    private const int TotalSize = NonceSize + TagSize + IdSize;
+    private const int CipherTextSize = sizeof(long);
+    private const int TotalSize = NonceSize + TagSize + CipherTextSize;
 
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "ChaCha20Poly1305 ID encryption v1"u8.ToArray();
@@ -54,7 +54,6 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
 
         var ikm = Encoding.UTF8.GetBytes(key);
         _nonceKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, 32, salt, NonceKeyInfo);
-
         // HKDF-SHA256: ikm → 32-байтный ключ для AES
         var keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
@@ -63,6 +62,7 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
             salt: salt,
             info: HkdfInfo);
         _cipher = new ChaCha20Poly1305(keyMaterial);
+        CryptographicOperations.ZeroMemory(ikm);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EncryptInternal(Span<byte> buffer, long id)
     {
-        var idBytes = buffer.Slice(NonceSize + TagSize, IdSize);
+        var idBytes = buffer.Slice(NonceSize + TagSize, CipherTextSize);
         BinaryPrimitives.WriteInt64LittleEndian(idBytes, id);
 
         var nonce = buffer[..NonceSize];
@@ -160,6 +160,41 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     }
 
     /// <inheritdoc/>
+    public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
+    {
+        value = default;
+        if(_disposed)
+        {
+            return false;
+        }
+
+        Span<byte> buffer = stackalloc byte[TotalSize];
+
+        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
+        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+        {
+            return false; 
+        }
+
+        ReadOnlySpan<byte> nonce = buffer[..NonceSize];
+        ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
+        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
+
+        Span<byte> plaintext = stackalloc byte[CipherTextSize];
+        try
+        {
+            Cipher.Decrypt(nonce, ciphertext, tag, plaintext);
+        }
+        catch(CryptographicException)
+        {
+            return false;
+        }
+        // Read int64 with correct byte orderт
+        value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public bool IsDeterministic => true;
 
     /// <inheritdoc/>
@@ -179,11 +214,7 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         }
         _disposed = true;
         _cipher.Dispose();
-    }
-
-    object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
-    {
-        return Decode(urlEncodedBase64);
+        CryptographicOperations.ZeroMemory(_nonceKey);
     }
 
     string ICryptoIdEncoder.Encode(object id)
@@ -194,6 +225,18 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
     {
         return TryEncode((long)id, destination, out charsWritten);
+    }
+
+    object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
+    {
+        return Decode(urlEncodedBase64);
+    }
+
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    {
+        var result = TryDecode(urlEncodedBase64, out var id);
+        value = id;
+        return result;
     }
 
     /// <summary>

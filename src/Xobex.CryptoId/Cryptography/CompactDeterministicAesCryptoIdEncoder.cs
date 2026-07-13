@@ -5,6 +5,7 @@
 
 using System.Buffers.Binary;
 using System.Buffers.Text;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -40,10 +41,9 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     private const int IdSize = sizeof(long);
 
     private static readonly byte[] HkdfAesInfo = "Xobex.AesEcbCompact.Encrypt.v1"u8.ToArray();
-    private static readonly byte[] HkdfMacInfo = "Xobex.AesEcbCompact.Mac.v1"u8.ToArray();
 
-    private readonly ThreadLocal<Aes> _cipher;
-    private readonly byte[] _macKey;
+    private readonly DisposableObjectPool<Aes> _pool;
+    private readonly byte[] _keyMaterial;
     private bool _disposed;
 
     /// <summary>
@@ -61,30 +61,24 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         }
 
         var ikm = Encoding.UTF8.GetBytes(key);
-
         // Криптографическое разделение ключей (Key Separation)
-        var aesKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, 32, salt, HkdfAesInfo);
-        _macKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, 32, salt, HkdfMacInfo);
-
-        // Инициализируем пул AES для каждого потока
-        _cipher = new(() =>
-        {
-            var aes = Aes.Create();
-            aes.Key = aesKey;
-            aes.Mode = CipherMode.ECB;
-            aes.Padding = PaddingMode.None;
-            return aes;
-        }, trackAllValues: true);
+        _keyMaterial = HKDF.DeriveKey(
+            hashAlgorithmName: HashAlgorithmName.SHA256,
+            ikm: ikm,
+            outputLength: 32,
+            salt: salt,
+            info: HkdfAesInfo);
+        CryptographicOperations.ZeroMemory(ikm);
+        _pool = new DisposableObjectPool<Aes>(CreatePooledInstance);
     }
 
-    private Aes Cipher
+    private Aes CreatePooledInstance()
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            return _cipher.Value!;
-        }
+        var newAes = Aes.Create();
+        newAes.Key = _keyMaterial;
+        newAes.Mode = CipherMode.ECB;
+        newAes.Padding = PaddingMode.None;
+        return newAes;
     }
 
     /// <summary>
@@ -135,8 +129,9 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var hash = ComputeFnv1a64(idSpan);
         BinaryPrimitives.WriteUInt64LittleEndian(tagSpan, hash);
 
+        using var cipher = _pool.LeaseObject();
         // Encrypting a block in place (ECB mode without padding for one block)
-        Cipher.EncryptEcb(block, encryptedBlock, PaddingMode.None);
+        cipher.Instance.EncryptEcb(block, encryptedBlock, PaddingMode.None);
     }
 
     /// <summary>
@@ -157,7 +152,11 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
 
         // Decrypting the block
         Span<byte> decryptedBlock = stackalloc byte[BlockSize];
-        Cipher.DecryptEcb(encryptedBlock, decryptedBlock, PaddingMode.None);
+
+        using (var cipher = _pool.LeaseObject())
+        {
+            cipher.Instance.DecryptEcb(encryptedBlock, decryptedBlock, PaddingMode.None);
+        }
 
         var idSpan = decryptedBlock[..IdSize];
         var tagSpan = decryptedBlock[IdSize..];
@@ -172,6 +171,47 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
 
         // Returning the original ID
         return BinaryPrimitives.ReadInt64LittleEndian(idSpan);
+    }
+
+    /// <inheritdoc/>
+    public bool TryDecode(ReadOnlySpan<char> text, out long value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        value = default;
+        Span<byte> encryptedBlock = stackalloc byte[BlockSize];
+
+        if (!Base64Url.TryDecodeFromChars(text, encryptedBlock, out var bytesWritten) || bytesWritten != BlockSize)
+        {
+            return false;
+        }
+
+        // Decrypting the block
+        Span<byte> decryptedBlock = stackalloc byte[BlockSize];
+
+        try
+        {
+            using var cipher = _pool.LeaseObject();
+            cipher.Instance.DecryptEcb(encryptedBlock, decryptedBlock, PaddingMode.None);
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
+        var idSpan = decryptedBlock[..IdSize];
+        var tagSpan = decryptedBlock[IdSize..];
+
+        // 2. Считаем и сверяем FNV-1a
+        var expectedHash = ComputeFnv1a64(idSpan);
+        var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
+        if (expectedHash != actualHash)
+        {
+            return false;
+        }
+
+        // Returning the original ID
+        value = BinaryPrimitives.ReadInt64LittleEndian(idSpan);
+        return true;
     }
 
     /// <summary>
@@ -209,12 +249,8 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
             return;
         }
         _disposed = true;
-
-        foreach (var aes in _cipher.Values)
-        {
-            aes?.Dispose();
-        }
-        _cipher.Dispose();
+        _pool.Dispose();
+        CryptographicOperations.ZeroMemory(_keyMaterial);
     }
 
     string ICryptoIdEncoder.Encode(object id)
@@ -230,5 +266,12 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
     {
         return TryEncode((long)id, destination, out charsWritten);
+    }
+
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    {
+        var result = TryDecode(urlEncodedBase64, out var id);
+        value = id;
+        return result;
     }
 }

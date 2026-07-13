@@ -5,6 +5,7 @@
 
 using System.Buffers.Binary;
 using System.Buffers.Text;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -47,7 +48,8 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "AES ID encryption v1"u8.ToArray();
 
-    private readonly ThreadLocal<AesGcm> _cipher;
+    private readonly DisposableObjectPool<AesGcm> _pool;
+    private readonly byte[] _keyMaterial;
     private bool _disposed;
 
     /// <summary>
@@ -72,29 +74,22 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
             throw new ArgumentException("Salt must be at least 8 bytes for HKDF-SHA256.", nameof(salt));
         }
 
+        var ikm = Encoding.UTF8.GetBytes(key);
         // HKDF-SHA256: ikm → 32-байтный ключ для AES
-        var keyMaterial = HKDF.DeriveKey(
+        _keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
-            ikm: Encoding.UTF8.GetBytes(key),
+            ikm: ikm,
             outputLength: 32,
             salt: salt,
             info: HkdfInfo);
-        _cipher = new(() => new AesGcm(keyMaterial, TagSize), trackAllValues: true);
+        CryptographicOperations.ZeroMemory(ikm);
+        _pool = new DisposableObjectPool<AesGcm>(CreatePooledObject);
     }
 
-    /// <summary>
-    /// Gets the thread-local AES-GCM cipher instance.
-    /// </summary>
-    /// <value>The AES-GCM cipher instance for this thread.</value>
-    /// <exception cref="ObjectDisposedException">Thrown if the encoder has been disposed.</exception>
-    private AesGcm Cipher
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private AesGcm CreatePooledObject()
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            return _cipher.Value!;
-        }
+        return new AesGcm(_keyMaterial, TagSize);
     }
 
     /// <summary>
@@ -144,8 +139,8 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
 
         RandomNumberGenerator.Fill(nonce);
         BinaryPrimitives.WriteInt64LittleEndian(ciphertext, id);
-
-        Cipher.Encrypt(nonce, ciphertext, ciphertext, tag);
+        using var cipher = _pool.LeaseObject();
+        cipher.Instance.Encrypt(nonce, ciphertext, ciphertext, tag);
     }
 
     /// <summary>
@@ -156,25 +151,53 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     /// <exception cref="FormatException">Invalid Base64Url format</exception>
     public long Decode(ReadOnlySpan<char> text)
     {
-        const int ciphertextSize = sizeof(long);
-        const int totalSize = NonceSize + TagSize + ciphertextSize;
-
-        Span<byte> buffer = stackalloc byte[totalSize];
+        Span<byte> buffer = stackalloc byte[TotalSize];
 
         // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != totalSize)
+        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
         {
-            throw new FormatException($"Invalid Base64Url format: expected {totalSize} bytes after decoding.");
+            throw new FormatException($"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];
         ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
-        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, ciphertextSize);
+        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
 
-        Span<byte> plaintext = stackalloc byte[ciphertextSize];
-        Cipher.Decrypt(nonce, ciphertext, tag, plaintext);
+        Span<byte> plaintext = stackalloc byte[CipherTextSize];
+        using var cipher = _pool.LeaseObject();
+        cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         // Read int64 with correct byte orderт
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+    }
+
+    /// <inheritdoc/>
+    public bool TryDecode(ReadOnlySpan<char> text, out long value)
+    {
+        Span<byte> buffer = stackalloc byte[TotalSize];
+        value = default;
+        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
+        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+        {
+            return false;
+        }
+
+        ReadOnlySpan<byte> nonce = buffer[..NonceSize];
+        ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
+        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
+
+        Span<byte> plaintext = stackalloc byte[CipherTextSize];
+        try
+        {
+            using var cipher = _pool.LeaseObject();
+            cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
+        }
+        catch(CryptographicException)
+        {
+            return false;
+        }
+        // Read int64 with correct byte orderт
+        value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        return true;
     }
 
     /// <inheritdoc/>
@@ -196,11 +219,8 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
             return;
         }
         _disposed = true;
-        foreach (var item in _cipher.Values)
-        {
-            item.Dispose();
-        }
-        _cipher.Dispose();
+        _pool.Dispose();
+        CryptographicOperations.ZeroMemory(_keyMaterial);
     }
 
     string ICryptoIdEncoder.Encode(object id)
@@ -208,14 +228,21 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
         return Encode((long)id);
     }
 
+    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    {
+        return TryEncode((long)id, destination, out charsWritten);
+    }
+
     object ICryptoIdEncoder.Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         return Decode(urlEncodedBase64);
     }
 
-    bool ICryptoIdEncoder.TryEncode(object id, Span<char> destination, out int charsWritten)
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
     {
-        return TryEncode((long)id, destination, out charsWritten);
+        var result = TryDecode(urlEncodedBase64, out var longValue);
+        value = longValue;
+        return result;
     }
 }
 

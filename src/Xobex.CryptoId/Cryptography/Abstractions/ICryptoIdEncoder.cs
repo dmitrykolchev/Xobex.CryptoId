@@ -25,6 +25,14 @@ public interface ICryptoIdEncoder
     object Decode(ReadOnlySpan<char> urlEncodedBase64);
 
     /// <summary>
+    /// Decodes a URL-safe Base64 string and decrypts it back to the original identifier.
+    /// </summary>
+    /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
+    /// <param name="value">The decrypted identifier</param>
+    /// <returns>Returns true is decryption was successfull</returns>
+    bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value);
+
+    /// <summary>
     /// Gets a value indicating whether the encryption is deterministic (i.e., the same input always produces the same output).
     /// </summary>
     public bool IsDeterministic { get; }

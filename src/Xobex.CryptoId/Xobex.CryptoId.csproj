@@ -13,7 +13,7 @@
     <FileVersion>$(Version).0</FileVersion>
   </PropertyGroup>
 
-  <Import Project="..\Xobex.CryptoId.build.props"/>
+  <Import Project="..\Xobex.CryptoId.build.props" />
   
   <ItemGroup>
     <None Include="..\..\LICENSE.txt">
