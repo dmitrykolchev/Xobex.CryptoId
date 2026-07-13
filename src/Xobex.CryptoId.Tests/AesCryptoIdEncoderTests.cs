@@ -107,6 +107,10 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
 
         // Assert
         Assert.AreEqual(testValue, decoded);
+
+        var result = encoder.TryDecode(encodedBuffer.AsSpan(0, written), out decoded);
+        Assert.IsTrue(result, "TryDecode should succeed");
+        Assert.AreEqual(testValue, decoded);
     }
 
     [TestMethod]
@@ -144,6 +148,9 @@ public class AesCryptoIdEncoderTests : CryptoIdTestBase
         {
             var encoded = encoder.Encode(testValue);
             var decoded = encoder.Decode(encoded);
+            Assert.AreEqual(testValue, decoded, $"Iteration {i}: Round-trip failed");
+            var result = encoder.TryDecode(encoded, out decoded);
+            Assert.IsTrue(result, "TryDecode should succeed");
             Assert.AreEqual(testValue, decoded, $"Iteration {i}: Round-trip failed");
         }
     }

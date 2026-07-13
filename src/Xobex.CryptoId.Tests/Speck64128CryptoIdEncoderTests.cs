@@ -106,6 +106,10 @@ public class Speck64128CryptoIdEncoderTests : CryptoIdTestBase
         var decoded = encoder.Decode(encodedBuffer.AsSpan(0, written));
         // Assert
         Assert.AreEqual(testValue, decoded);
+
+        var result = encoder.TryDecode(encodedBuffer.AsSpan(0, written), out decoded);
+        Assert.IsTrue(result, "TryDecode should succeed");
+        Assert.AreEqual(testValue, decoded);
     }
 
     [TestMethod]
