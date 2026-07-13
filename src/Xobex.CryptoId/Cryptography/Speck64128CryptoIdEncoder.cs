@@ -179,7 +179,14 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
             return false;
         }
 
-        _cipher.Decrypt(ciphertext, plaintext);
+        try
+        {
+            _cipher.Decrypt(ciphertext, plaintext);
+        }
+        catch(ArgumentException)
+        {
+            return false;
+        }
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
         return true;
     }
