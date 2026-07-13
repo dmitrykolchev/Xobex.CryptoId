@@ -336,27 +336,27 @@ Intel Core i7-10700KF CPU 3.80GHz (Max: 3.79GHz), 1 CPU, 16 logical and 8 physic
 ```
 | Method                                  | Mean        | Error    | StdDev   | Ratio | RatioSD | Gen0   | Allocated | Alloc Ratio |
 |---------------------------------------- |------------:|---------:|---------:|------:|--------:|-------:|----------:|------------:|
-| Encode_Speck64_128                      |    32.57 ns | 0.317 ns | 0.296 ns |  0.12 |    0.00 | 0.0057 |      48 B |        0.40 |
-| TryEncode_Speck64_128                   |    29.69 ns | 0.290 ns | 0.257 ns |  0.11 |    0.00 |      - |         - |        0.00 |
-| Decode_Speck64_128                      |    42.99 ns | 0.100 ns | 0.093 ns |  0.16 |    0.00 |      - |         - |        0.00 |
-| Encode_Speck32_64                       |    39.50 ns | 0.132 ns | 0.110 ns |  0.15 |    0.00 | 0.0048 |      40 B |        0.33 |
-| TryEncode_Speck32_64                    |    35.69 ns | 0.320 ns | 0.283 ns |  0.13 |    0.00 |      - |         - |        0.00 |
-| Decode_Speck32_64                       |    61.96 ns | 0.139 ns | 0.130 ns |  0.23 |    0.00 |      - |         - |        0.00 |
-| Encode_Skip32                           |   194.99 ns | 1.318 ns | 1.169 ns |  0.73 |    0.01 | 0.0048 |      40 B |        0.33 |
-| TryEncode_Skip32                        |   190.14 ns | 0.498 ns | 0.466 ns |  0.71 |    0.00 |      - |         - |        0.00 |
-| Decode_Skip32                           |   195.76 ns | 0.573 ns | 0.536 ns |  0.73 |    0.00 |      - |         - |        0.00 |
-| Encode_AesGcm                           |   268.95 ns | 1.734 ns | 1.622 ns |  1.00 |    0.01 | 0.0143 |     120 B |        1.00 |
-| TryEncode_AesGcm                        |   253.05 ns | 1.007 ns | 0.942 ns |  0.94 |    0.01 |      - |         - |        0.00 |
-| Decode_AesGcm                           |   190.49 ns | 0.585 ns | 0.547 ns |  0.71 |    0.00 |      - |         - |        0.00 |
-| Encode_DeterministicAesGcm              |   975.23 ns | 4.063 ns | 3.601 ns |  3.63 |    0.02 | 0.0134 |     120 B |        1.00 |
-| TryEncode_DeterministicAesGcm           |   966.29 ns | 1.213 ns | 1.076 ns |  3.59 |    0.02 |      - |         - |        0.00 |
-| Decode_DeterministicAesGcm              |   189.76 ns | 0.423 ns | 0.396 ns |  0.71 |    0.00 |      - |         - |        0.00 |
-| Encode_CompactDeterministicAes          |   414.64 ns | 1.760 ns | 1.560 ns |  1.54 |    0.01 | 0.0191 |     160 B |        1.33 |
-| TryEncode_CompactDeterministicAes       |   398.34 ns | 2.117 ns | 1.980 ns |  1.48 |    0.01 | 0.0105 |      88 B |        0.73 |
-| Decode_CompactDeterministicAes          |   418.28 ns | 3.039 ns | 2.843 ns |  1.56 |    0.01 | 0.0105 |      88 B |        0.73 |
-| Encode_DeterministicChaCha20Poly1305    | 1,140.01 ns | 3.412 ns | 3.192 ns |  4.24 |    0.03 | 0.0134 |     120 B |        1.00 |
-| TryEncode_DeterministicChaCha20Poly1305 | 1,119.34 ns | 2.982 ns | 2.789 ns |  4.16 |    0.03 |      - |         - |        0.00 |
-| Decode_DeterministicChaCha20Poly1305    |   336.74 ns | 0.543 ns | 0.453 ns |  1.25 |    0.01 |      - |         - |        0.00 |
+| Encode_Speck64_128                      |    32.79 ns | 0.186 ns | 0.165 ns |  0.11 |    0.00 | 0.0057 |      48 B |        0.40 |
+| TryEncode_Speck64_128                   |    29.03 ns | 0.031 ns | 0.026 ns |  0.10 |    0.00 |      - |         - |        0.00 |
+| Decode_Speck64_128                      |    42.94 ns | 0.116 ns | 0.109 ns |  0.15 |    0.00 |      - |         - |        0.00 |
+| Encode_Speck32_64                       |    39.10 ns | 0.136 ns | 0.127 ns |  0.13 |    0.00 | 0.0048 |      40 B |        0.33 |
+| TryEncode_Speck32_64                    |    35.63 ns | 0.084 ns | 0.070 ns |  0.12 |    0.00 |      - |         - |        0.00 |
+| Decode_Speck32_64                       |    62.04 ns | 0.146 ns | 0.122 ns |  0.21 |    0.00 |      - |         - |        0.00 |
+| Encode_Skip32                           |   194.02 ns | 0.456 ns | 0.404 ns |  0.66 |    0.00 | 0.0048 |      40 B |        0.33 |
+| TryEncode_Skip32                        |   189.86 ns | 0.409 ns | 0.341 ns |  0.65 |    0.00 |      - |         - |        0.00 |
+| Decode_Skip32                           |   195.38 ns | 0.535 ns | 0.474 ns |  0.67 |    0.00 |      - |         - |        0.00 |
+| Encode_AesGcm                           |   293.73 ns | 1.276 ns | 1.193 ns |  1.00 |    0.01 | 0.0143 |     120 B |        1.00 |
+| TryEncode_AesGcm                        |   276.04 ns | 1.045 ns | 0.977 ns |  0.94 |    0.00 |      - |         - |        0.00 |
+| Decode_AesGcm                           |   215.49 ns | 0.642 ns | 0.601 ns |  0.73 |    0.00 |      - |         - |        0.00 |
+| Encode_DeterministicAesGcm              |   996.97 ns | 2.202 ns | 1.838 ns |  3.39 |    0.01 | 0.0134 |     120 B |        1.00 |
+| TryEncode_DeterministicAesGcm           |   983.35 ns | 4.264 ns | 3.780 ns |  3.35 |    0.02 |      - |         - |        0.00 |
+| Decode_DeterministicAesGcm              |   218.37 ns | 0.825 ns | 0.689 ns |  0.74 |    0.00 |      - |         - |        0.00 |
+| Encode_CompactDeterministicAes          |   429.87 ns | 1.544 ns | 1.444 ns |  1.46 |    0.01 | 0.0191 |     160 B |        1.33 |
+| TryEncode_CompactDeterministicAes       |   423.19 ns | 2.563 ns | 2.140 ns |  1.44 |    0.01 | 0.0105 |      88 B |        0.73 |
+| Decode_CompactDeterministicAes          |   453.23 ns | 0.656 ns | 0.512 ns |  1.54 |    0.01 | 0.0105 |      88 B |        0.73 |
+| Encode_DeterministicChaCha20Poly1305    | 1,138.24 ns | 4.770 ns | 4.462 ns |  3.88 |    0.02 | 0.0134 |     120 B |        1.00 |
+| TryEncode_DeterministicChaCha20Poly1305 | 1,115.90 ns | 1.991 ns | 1.862 ns |  3.80 |    0.02 |      - |         - |        0.00 |
+| Decode_DeterministicChaCha20Poly1305    |   338.99 ns | 1.069 ns | 1.000 ns |  1.15 |    0.01 |      - |         - |        0.00 |
 
 ------------------------------
 ## License

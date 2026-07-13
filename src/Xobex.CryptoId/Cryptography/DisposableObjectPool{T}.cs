@@ -11,14 +11,13 @@ namespace Xobex.Cryptography;
 /// A pool of disposable objects.
 /// </summary>
 /// <typeparam name="T">The type of disposable objects to pool.</typeparam>
-public sealed class DisposableObjectPool<T> : IDisposable
+internal sealed class DisposableObjectPool<T> : IDisposable
     where T : class, IDisposable
 {
     private readonly Lock _sync = new();
     private readonly Stack<T> _pool = [];
 
     private readonly Func<T> _createObject;
-    private readonly Action<T>? _returnObject;
     private readonly Action<Exception>? _logError;
     private bool _disposed;
 
@@ -26,12 +25,10 @@ public sealed class DisposableObjectPool<T> : IDisposable
     /// Initializes a new instance of the <see cref="DisposableObjectPool{T}"/> class.
     /// </summary>
     /// <param name="createObject">Factory function</param>
-    /// <param name="returnObject">Return action</param>
     /// <param name="logError"></param>
-    public DisposableObjectPool(Func<T> createObject, Action<T>? returnObject = null, Action<Exception>? logError = null)
+    public DisposableObjectPool(Func<T> createObject, Action<Exception>? logError = null)
     {
         _createObject = createObject ?? throw new ArgumentNullException(nameof(createObject));
-        _returnObject = returnObject;
         _logError = logError;
     }
 
@@ -98,16 +95,6 @@ public sealed class DisposableObjectPool<T> : IDisposable
                 SafeDispose(value);
                 return;
             }
-            try
-            {
-                _returnObject?.Invoke(value);
-            }
-            catch (Exception ex)
-            {
-                _logError?.Invoke(ex);
-                SafeDispose(value);
-                return;
-            }
             _pool.Push(value);
         }
     }
@@ -115,10 +102,9 @@ public sealed class DisposableObjectPool<T> : IDisposable
     /// <summary>
     /// Pooled object instance wrapper
     /// </summary>
-    public ref struct ObjectInstance
+    internal readonly ref struct ObjectInstance
     {
         private readonly DisposableObjectPool<T> _owner;
-        private T? _instance;
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectInstance"/> class.
         /// </summary>
@@ -127,7 +113,7 @@ public sealed class DisposableObjectPool<T> : IDisposable
         internal ObjectInstance(DisposableObjectPool<T> owner, T instance)
         {
             _owner = owner;
-            _instance = instance;
+            Instance = instance;
         }
 
         /// <summary>
@@ -136,20 +122,15 @@ public sealed class DisposableObjectPool<T> : IDisposable
         public T Instance
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _instance ?? throw new ObjectDisposedException(nameof(ObjectInstance));
+            get;
         }
-
         /// <summary>
         /// Returns the object to the pool
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            var instance = Interlocked.Exchange<T?>(ref _instance, null);
-            if (instance != null)
-            {
-                _owner.ReturnObject(instance);
-            }
+            _owner.ReturnObject(Instance);
         }
     }
 }
