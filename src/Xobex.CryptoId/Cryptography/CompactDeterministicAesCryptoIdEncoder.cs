@@ -60,7 +60,6 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         }
 
         var ikm = Encoding.UTF8.GetBytes(key);
-        // Криптографическое разделение ключей (Key Separation)
         _keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: ikm,
@@ -123,8 +122,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
 
         BinaryPrimitives.WriteInt64LittleEndian(idSpan, id);
 
-        // Calculate HMAC from ID to check integrity (without intermediate copies)
-        // 2. Вычисляем сверхбыстрый FNV-1a на стеке (~1-2 нс)
+        // Computing ultrafast FNV-1a on a stack (~1-2 ns)
         var hash = ComputeFnv1a64(idSpan);
         BinaryPrimitives.WriteUInt64LittleEndian(tagSpan, hash);
 
@@ -160,7 +158,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var idSpan = decryptedBlock[..IdSize];
         var tagSpan = decryptedBlock[IdSize..];
 
-        // 2. Считаем и сверяем FNV-1a
+        // count and compare FNV-1a
         var expectedHash = ComputeFnv1a64(idSpan);
         var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
         if (expectedHash != actualHash)
@@ -207,7 +205,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var idSpan = decryptedBlock[..IdSize];
         var tagSpan = decryptedBlock[IdSize..];
 
-        // 2. Считаем и сверяем FNV-1a
+        // count and compare FNV-1a
         var expectedHash = ComputeFnv1a64(idSpan);
         var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
         if (expectedHash != actualHash)
@@ -221,8 +219,8 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     }
 
     /// <summary>
-    /// Вычисляет 64-битный некриптографический хеш FNV-1a.
-    /// Алгоритм выполняется за O(N) по байтам, для 8 байт это всего 8 итераций XOR/MUL.
+    /// Computes a 64-bit non-cryptographic FNV-1a hash.
+    /// The algorithm runs in O(N) bytes, for 8 bytes this is only 8 XOR/MUL iterations.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong ComputeFnv1a64(ReadOnlySpan<byte> data)
