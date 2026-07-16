@@ -11,6 +11,9 @@ namespace Xobex.Cryptography;
 /// A pool of disposable objects.
 /// </summary>
 /// <typeparam name="T">The type of disposable objects to pool.</typeparam>
+/// <remarks>
+/// Unbounded pool growth allowed. Need to fix (low priority)
+/// </remarks>
 internal sealed class DisposableObjectPool<T> : IDisposable
     where T : class, IDisposable
 {
@@ -19,7 +22,7 @@ internal sealed class DisposableObjectPool<T> : IDisposable
 
     private readonly Func<T> _createObject;
     private readonly Action<Exception>? _logError;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DisposableObjectPool{T}"/> class.
@@ -37,6 +40,10 @@ internal sealed class DisposableObjectPool<T> : IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
         lock (_sync)
         {
             if (_disposed)
@@ -67,9 +74,18 @@ internal sealed class DisposableObjectPool<T> : IDisposable
     /// Leases the object from the pool or creates new object if pool is empty
     /// </summary>
     /// <returns>Disposable Wrapper to the pooled object</returns>
+    /// <remarks>
+    /// Always use this pattern
+    /// <code>
+    ///     using var lease = _pool.LeaseObject();
+    ///     lease.Instance.EncryptEcb(block, encryptedBlock, PaddingMode.None);
+    /// </code>
+    /// Never copy `lease` ref struct
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ObjectInstance LeaseObject()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         lock (_sync)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -84,10 +100,15 @@ internal sealed class DisposableObjectPool<T> : IDisposable
     /// <summary>
     /// Returns object to the pool
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">returned object</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReturnObject(T value)
     {
+        if (_disposed)
+        {
+            SafeDispose(value);
+            return;
+        }
         lock (_sync)
         {
             if (_disposed)
@@ -105,6 +126,7 @@ internal sealed class DisposableObjectPool<T> : IDisposable
     internal readonly ref struct ObjectInstance
     {
         private readonly DisposableObjectPool<T> _owner;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectInstance"/> class.
         /// </summary>
