@@ -3,14 +3,15 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
+using System.Diagnostics;
 using System.Security.Cryptography;
 
 namespace Xobex.Cryptography;
 
 /// <summary>
-/// 
+/// OperationResultKind enum
 /// </summary>
-public enum OperationResultType
+internal enum OperationResultKind
 {
     /// <summary>
     /// Operation succeeded
@@ -21,33 +22,28 @@ public enum OperationResultType
     /// </summary>
     Failed = 1,
     /// <summary>
-    /// 
+    /// Format error
     /// </summary>
     FormatError,
     /// <summary>
-    /// 
+    /// Cryptographic error
     /// </summary>
     CryptographicError,
     /// <summary>
-    /// 
+    /// Object disposed error
     /// </summary>
     DisposedError,
 }
 
 /// <summary>
-/// 
+/// OperationResult class
 /// </summary>
-public readonly ref struct OperationResult
+internal readonly struct OperationResult
 {
     /// <summary>
-    /// 
+    /// Gets Success instance if <see cref="OperationResult"/>
     /// </summary>
     public static OperationResult Success => new(true);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public static OperationResult Fail => new(false);
 
     /// <summary>
     /// Initializes new instance of <see cref="OperationResult"/> 
@@ -55,67 +51,64 @@ public readonly ref struct OperationResult
     /// <param name="succeeded"></param>
     public OperationResult(bool succeeded)
     {
-        Result = succeeded ? OperationResultType.Succeeded : OperationResultType.Failed;
+        Kind = succeeded ? OperationResultKind.Succeeded : OperationResultKind.Failed;
     }
 
     /// <summary>
-    /// 
+    /// Initializes new instance of <see cref="OperationResult"/> 
     /// </summary>
     /// <param name="resultType"></param>
     /// <param name="message"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public OperationResult(OperationResultType resultType, string? message = null)
+    public OperationResult(OperationResultKind resultType, string? message = null)
     {
-        Result = resultType;
+        Kind = resultType;
         Message = message;
     }
 
     /// <summary>
-    /// 
+    /// Returns true is result of succeeded operation
     /// </summary>
-    public bool Succeeded => Result == OperationResultType.Succeeded;
+    public bool Succeeded => Kind == OperationResultKind.Succeeded;
 
     /// <summary>
-    /// 
+    /// Returns true is result of failed operation
     /// </summary>
-    public bool Failed => Result != OperationResultType.Succeeded;
+    public bool Failed => Kind != OperationResultKind.Succeeded;
 
     /// <summary>
     /// Gets the operation result type
     /// </summary>
-    public OperationResultType Result { get; }
+    public OperationResultKind Kind { get; }
 
     /// <summary>
     /// Gets a result message
     /// </summary>
-    public string? Message => field ?? (Result != OperationResultType.Succeeded ? "Operation Failed" : null);
+    public string? Message => field ?? (Kind != OperationResultKind.Succeeded ? "Operation Failed" : null);
 
     /// <summary>
-    /// 
+    /// Throws exception if Kind is not Succeeded
     /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
     public void ThrowIfFailed()
     {
-        Exception? ex = Result switch
+        Exception? ex = Kind switch
         {
-            OperationResultType.Succeeded => null,
-            OperationResultType.FormatError => new FormatException(Message),
-            OperationResultType.CryptographicError => new CryptographicException(Message),
-            OperationResultType.Failed => new InvalidOperationException(Message),
-            OperationResultType.DisposedError => new ObjectDisposedException(Message),
-            _ => throw new NotImplementedException(),
+            OperationResultKind.Succeeded => null,
+            OperationResultKind.FormatError => new FormatException(Message),
+            OperationResultKind.CryptographicError => new CryptographicException(Message),
+            OperationResultKind.Failed => new InvalidOperationException(Message),
+            OperationResultKind.DisposedError => new ObjectDisposedException(objectName: null, message: Message),
+            _ => throw new UnreachableException(),
         };
         if (ex != null)
         {
             throw ex;
         }
     }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="result"></param>
-    public static implicit operator bool(OperationResult result)
+
+    /// <inheritdoc/>
+    public override string ToString()
     {
-        return result.Result == OperationResultType.Succeeded;
+        return Failed ? $"{Kind}: {Message}" : nameof(OperationResultKind.Succeeded);
     }
 }

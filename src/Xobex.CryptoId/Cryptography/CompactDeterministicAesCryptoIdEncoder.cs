@@ -139,8 +139,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     public long Decode(ReadOnlySpan<char> text)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var result = TryDecodeInternal(text, out var value);
-        result.ThrowIfFailed();
+        TryDecodeInternal(text, out var value).ThrowIfFailed();
         return value;
     }
 
@@ -148,8 +147,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     public bool TryDecode(ReadOnlySpan<char> text, out long value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var result = TryDecodeInternal(text, out value);
-        return result;
+        return TryDecodeInternal(text, out value).Succeeded;
     }
 
     private OperationResult TryDecodeInternal(ReadOnlySpan<char> text, out long value)
@@ -161,12 +159,12 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         {
             if (!Base64Url.TryDecodeFromChars(text, encryptedBlock, out var bytesWritten) || bytesWritten != BlockSize)
             {
-                return new OperationResult(OperationResultType.FormatError, $"Invalid Base64Url format: expected {BlockSize} bytes after decoding.");
+                return new OperationResult(OperationResultKind.FormatError, $"Invalid Base64Url format: expected {BlockSize} bytes after decoding.");
             }
         }
         catch (FormatException ex)
         {
-            return new OperationResult(OperationResultType.FormatError, ex.Message);
+            return new OperationResult(OperationResultKind.FormatError, ex.Message);
         }
 
         // Decrypting the block
@@ -179,7 +177,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         }
         catch (CryptographicException ex)
         {
-            return new OperationResult(OperationResultType.CryptographicError, ex.Message);
+            return new OperationResult(OperationResultKind.CryptographicError, ex.Message);
         }
         var idSpan = decryptedBlock[..IdSize];
         var tagSpan = decryptedBlock[IdSize..];
@@ -189,7 +187,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
         if (expectedHash != actualHash)
         {
-            return new OperationResult(OperationResultType.CryptographicError, "Integrity check failed: ID cipher text is modified or invalid.");
+            return new OperationResult(OperationResultKind.CryptographicError, "Integrity check failed: ID cipher text is modified or invalid.");
         }
 
         // Returning the original ID
