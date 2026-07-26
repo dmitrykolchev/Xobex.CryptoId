@@ -43,7 +43,7 @@ internal readonly struct OperationResult
     /// <summary>
     /// Gets Success instance of <see cref="OperationResult"/>
     /// </summary>
-    public static readonly OperationResult Success = new (OperationResultKind.Succeeded);
+    public static readonly OperationResult Success = new(OperationResultKind.Succeeded);
 
     /// <summary>
     /// Initializes new instance of <see cref="OperationResult"/> 
@@ -74,7 +74,7 @@ internal readonly struct OperationResult
     /// <summary>
     /// Gets a result message
     /// </summary>
-    public string? Message => field ?? (Kind != OperationResultKind.Succeeded ? "Operation Failed" : null);
+    public string? Message { get; }
 
     /// <summary>
     /// Throws exception if Kind is not Succeeded
@@ -84,10 +84,10 @@ internal readonly struct OperationResult
         Exception? ex = Kind switch
         {
             OperationResultKind.Succeeded => null,
-            OperationResultKind.FormatError => new FormatException(Message),
-            OperationResultKind.CryptographicError => new CryptographicException(Message),
-            OperationResultKind.Failed => new InvalidOperationException(Message),
-            OperationResultKind.DisposedError => new ObjectDisposedException(objectName: null, message: Message),
+            OperationResultKind.FormatError => Message is null ? new FormatException() : new FormatException(Message),
+            OperationResultKind.CryptographicError => Message is null ? new CryptographicException() : new CryptographicException(Message),
+            OperationResultKind.Failed => Message is null ? new InvalidOperationException() : new InvalidOperationException(Message),
+            OperationResultKind.DisposedError => Message is null ? new ObjectDisposedException(objectName: null) : new ObjectDisposedException(objectName: null, message: Message),
             _ => throw new UnreachableException(),
         };
         if (ex != null)
