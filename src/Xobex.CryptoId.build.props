@@ -11,5 +11,6 @@
       <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
       <PackageTags>$(PackageTags);obfuscation;id-obfuscation;sqids;hashids;database-id;security;slug;url-shortener;encryption;data-masking;guid-alternative;entity-framework;ef-core;aspnetcore;dotnet;csharp</PackageTags>
       <PackageOutputPath>$(SolutionDir)packages</PackageOutputPath>
+      <LangVersion>latest</LangVersion>
     </PropertyGroup>
 </Project>

@@ -139,42 +139,21 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     public long Decode(ReadOnlySpan<char> text)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-
-        Span<byte> encryptedBlock = stackalloc byte[BlockSize];
-
-        if (!Base64Url.TryDecodeFromChars(text, encryptedBlock, out var bytesWritten) || bytesWritten != BlockSize)
-        {
-            throw new FormatException($"Invalid Base64Url format: expected {BlockSize} bytes after decoding.");
-        }
-
-        // Decrypting the block
-        Span<byte> decryptedBlock = stackalloc byte[BlockSize];
-
-        using (var cipher = _pool.LeaseObject())
-        {
-            cipher.Instance.DecryptEcb(encryptedBlock, decryptedBlock, PaddingMode.None);
-        }
-
-        var idSpan = decryptedBlock[..IdSize];
-        var tagSpan = decryptedBlock[IdSize..];
-
-        // count and compare FNV-1a
-        var expectedHash = ComputeFnv1a64(idSpan);
-        var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
-        if (expectedHash != actualHash)
-        {
-            throw new CryptographicException("Integrity check failed: ID cipher text is modified or invalid.");
-        }
-
-        // Returning the original ID
-        return BinaryPrimitives.ReadInt64LittleEndian(idSpan);
+        var result = TryDecodeInternal(text, out var value);
+        result.ThrowIfFailed();
+        return value;
     }
 
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> text, out long value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        var result = TryDecodeInternal(text, out value);
+        return result;
+    }
 
+    private OperationResult TryDecodeInternal(ReadOnlySpan<char> text, out long value)
+    {
         value = default;
         Span<byte> encryptedBlock = stackalloc byte[BlockSize];
 
@@ -182,12 +161,12 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         {
             if (!Base64Url.TryDecodeFromChars(text, encryptedBlock, out var bytesWritten) || bytesWritten != BlockSize)
             {
-                return false;
+                return new OperationResult(OperationResultType.FormatError, $"Invalid Base64Url format: expected {BlockSize} bytes after decoding.");
             }
         }
-        catch (FormatException)
+        catch (FormatException ex)
         {
-            return false;
+            return new OperationResult(OperationResultType.FormatError, ex.Message);
         }
 
         // Decrypting the block
@@ -198,9 +177,9 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
             using var cipher = _pool.LeaseObject();
             cipher.Instance.DecryptEcb(encryptedBlock, decryptedBlock, PaddingMode.None);
         }
-        catch (CryptographicException)
+        catch (CryptographicException ex)
         {
-            return false;
+            return new OperationResult(OperationResultType.CryptographicError, ex.Message);
         }
         var idSpan = decryptedBlock[..IdSize];
         var tagSpan = decryptedBlock[IdSize..];
@@ -210,12 +189,12 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
         if (expectedHash != actualHash)
         {
-            return false;
+            return new OperationResult(OperationResultType.CryptographicError, "Integrity check failed: ID cipher text is modified or invalid.");
         }
 
         // Returning the original ID
         value = BinaryPrimitives.ReadInt64LittleEndian(idSpan);
-        return true;
+        return OperationResult.Success;
     }
 
     /// <summary>

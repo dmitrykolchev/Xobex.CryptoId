@@ -12,7 +12,7 @@ namespace Xobex.Cryptography;
 /// </summary>
 /// <typeparam name="T">The type of disposable objects to pool.</typeparam>
 /// <remarks>
-/// Unbounded pool growth allowed. Need to fix (low priority)
+/// Pool growth limited by maxSize parameter
 /// </remarks>
 internal sealed class DisposableObjectPool<T> : IDisposable
     where T : class, IDisposable
@@ -22,6 +22,7 @@ internal sealed class DisposableObjectPool<T> : IDisposable
 
     private readonly Func<T> _createObject;
     private readonly Action<Exception>? _logError;
+    private readonly int _maxSize;
     private volatile bool _disposed;
 
     /// <summary>
@@ -29,10 +30,12 @@ internal sealed class DisposableObjectPool<T> : IDisposable
     /// </summary>
     /// <param name="createObject">Factory function</param>
     /// <param name="logError"></param>
-    public DisposableObjectPool(Func<T> createObject, Action<Exception>? logError = null)
+    /// <param name="maxSize">Maximum number of objects to pool (default: 10). Objects beyond this limit are disposed immediately.</param>
+    public DisposableObjectPool(Func<T> createObject, Action<Exception>? logError = null, int maxSize = 10)
     {
         _createObject = createObject ?? throw new ArgumentNullException(nameof(createObject));
         _logError = logError;
+        _maxSize = maxSize > 0 ? maxSize : throw new ArgumentException("maxSize must be greater than 0", nameof(maxSize));
     }
 
     /// <summary>
@@ -116,7 +119,14 @@ internal sealed class DisposableObjectPool<T> : IDisposable
                 SafeDispose(value);
                 return;
             }
-            _pool.Push(value);
+            if (_pool.Count < _maxSize)
+            {
+                _pool.Push(value);
+            }
+            else
+            {
+                SafeDispose(value);
+            }
         }
     }
 
