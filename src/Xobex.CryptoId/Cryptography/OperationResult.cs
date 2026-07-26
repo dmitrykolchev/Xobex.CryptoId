@@ -41,25 +41,15 @@ internal enum OperationResultKind
 internal readonly struct OperationResult
 {
     /// <summary>
-    /// Gets Success instance if <see cref="OperationResult"/>
+    /// Gets Success instance of <see cref="OperationResult"/>
     /// </summary>
-    public static OperationResult Success => new(true);
-
-    /// <summary>
-    /// Initializes new instance of <see cref="OperationResult"/> 
-    /// </summary>
-    /// <param name="succeeded"></param>
-    public OperationResult(bool succeeded)
-    {
-        Kind = succeeded ? OperationResultKind.Succeeded : OperationResultKind.Failed;
-    }
+    public static readonly OperationResult Success = new (OperationResultKind.Succeeded);
 
     /// <summary>
     /// Initializes new instance of <see cref="OperationResult"/> 
     /// </summary>
     /// <param name="resultType"></param>
     /// <param name="message"></param>
-    /// <exception cref="ArgumentNullException"></exception>
     public OperationResult(OperationResultKind resultType, string? message = null)
     {
         Kind = resultType;
