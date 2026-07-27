@@ -166,11 +166,8 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         value = default;
-        if (_disposed)
-        {
-            return false;
-        }
         Span<byte> buffer = stackalloc byte[TotalSize];
 
         try

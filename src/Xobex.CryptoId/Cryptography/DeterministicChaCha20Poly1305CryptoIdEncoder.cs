@@ -162,11 +162,8 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         value = default;
-        if(_disposed)
-        {
-            return false;
-        }
 
         Span<byte> buffer = stackalloc byte[TotalSize];
 
