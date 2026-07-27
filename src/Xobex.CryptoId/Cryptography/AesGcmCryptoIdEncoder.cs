@@ -150,41 +150,36 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     /// <exception cref="FormatException">Invalid Base64Url format</exception>
     public long Decode(ReadOnlySpan<char> text)
     {
-        Span<byte> buffer = stackalloc byte[TotalSize];
-
-        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
-        {
-            throw new FormatException($"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
-        }
-
-        ReadOnlySpan<byte> nonce = buffer[..NonceSize];
-        ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
-        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, CipherTextSize);
-
-        Span<byte> plaintext = stackalloc byte[CipherTextSize];
-        using var cipher = _pool.LeaseObject();
-        cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
-        // Read int64 with correct byte orderт
-        return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        TryDecodeInternal(text, out var value).ThrowIfFailed();
+        return value;
     }
 
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> text, out long value)
     {
-        Span<byte> buffer = stackalloc byte[TotalSize];
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var result = TryDecodeInternal(text, out value);
+        return result.Succeeded;
+    }
+
+    private OperationResult TryDecodeInternal(ReadOnlySpan<char> text, out long value)
+    {
         value = default;
-        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
+
+        Span<byte> buffer = stackalloc byte[TotalSize];
+
         try
         {
+            // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
             if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
             {
-                return false;
+                return OperationResult.Fail(OperationResultKind.FormatError, $"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
             }
         }
-        catch (FormatException)
+        catch(FormatException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.FormatError, ex.Message);
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];
@@ -197,13 +192,13 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
             using var cipher = _pool.LeaseObject();
             cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         }
-        catch (CryptographicException)
+        catch(CryptographicException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.CryptographicError, ex.Message);
         }
         // Read int64 with correct byte orderт
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
-        return true;
+        return OperationResult.Success;
     }
 
     /// <inheritdoc/>

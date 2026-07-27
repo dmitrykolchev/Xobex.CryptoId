@@ -4,6 +4,7 @@
 // </copyright>
 
 using Xobex.Cryptography;
+using Xobex.Cryptography.Algo;
 
 namespace Xobex.CryptoId.Tests;
 
@@ -334,7 +335,7 @@ public class Speck3264CryptoIdEncoderTests : CryptoIdTestBase
         byte[] plaintext = [0x74, 0x65, 0x4C, 0x69]; // (x=0x6574, y=0x694c), LE per word
         byte[] expectedCiphertext = [0x68, 0xA8, 0xF2, 0x42]; // (x=0xa868, y=0x42f2), LE per word
 
-        var cipher = new Speck3264CryptoIdEncoder.Speck32_64(key);
+        var cipher = new Speck32_64(key);
         Span<byte> actual = stackalloc byte[4];
         cipher.Encrypt(plaintext, actual);
 

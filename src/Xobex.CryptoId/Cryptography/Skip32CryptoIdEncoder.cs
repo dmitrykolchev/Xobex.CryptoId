@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using Xobex.Cryptography.Abstractions;
+using Xobex.Cryptography.Algo;
 
 namespace Xobex.Cryptography;
 

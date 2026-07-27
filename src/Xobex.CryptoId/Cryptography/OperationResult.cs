@@ -46,6 +46,17 @@ internal readonly struct OperationResult
     public static readonly OperationResult Success = new(OperationResultKind.Succeeded);
 
     /// <summary>
+    /// returns faild operation result
+    /// </summary>
+    /// <param name="kind">failed operation result kind</param>
+    /// <param name="message">error message</param>
+    /// <returns></returns>
+    public static OperationResult Fail(OperationResultKind kind, string message)
+    {
+        return new OperationResult(kind, message);
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="OperationResult"/> 
     /// </summary>
     /// <param name="resultType"></param>

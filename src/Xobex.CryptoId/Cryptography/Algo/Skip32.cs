@@ -5,7 +5,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Xobex.Cryptography;
+namespace Xobex.Cryptography.Algo;
 
 /// <summary>
 /// Skip32 is a 32-bit block cipher (Format-Preserving Encryption: uint32 → uint32).

@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using Xobex.Cryptography.Abstractions;
+using Xobex.Cryptography.Algo;
 
 namespace Xobex.Cryptography;
 
@@ -123,7 +124,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         BinaryPrimitives.WriteInt64LittleEndian(idSpan, id);
 
         // Computing ultrafast FNV-1a on a stack (~1-2 ns)
-        var hash = ComputeFnv1a64(idSpan);
+        var hash = HashProvider.ComputeFnv1a64(idSpan);
         BinaryPrimitives.WriteUInt64LittleEndian(tagSpan, hash);
 
         using var cipher = _pool.LeaseObject();
@@ -183,7 +184,7 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         var tagSpan = decryptedBlock[IdSize..];
 
         // count and compare FNV-1a
-        var expectedHash = ComputeFnv1a64(idSpan);
+        var expectedHash = HashProvider.ComputeFnv1a64(idSpan);
         var actualHash = BinaryPrimitives.ReadUInt64LittleEndian(tagSpan);
         if (expectedHash != actualHash)
         {
@@ -193,22 +194,6 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
         // Returning the original ID
         value = BinaryPrimitives.ReadInt64LittleEndian(idSpan);
         return OperationResult.Success;
-    }
-
-    /// <summary>
-    /// Computes a 64-bit non-cryptographic FNV-1a hash.
-    /// The algorithm runs in O(N) bytes, for 8 bytes this is only 8 XOR/MUL iterations.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ulong ComputeFnv1a64(ReadOnlySpan<byte> data)
-    {
-        var hash = 14695981039346656037UL; // FNV offset basis
-        foreach (var b in data)
-        {
-            hash ^= b;
-            hash *= 1099511628211UL; // FNV prime
-        }
-        return hash;
     }
 
     /// <inheritdoc/>
