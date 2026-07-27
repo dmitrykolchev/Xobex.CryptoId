@@ -99,6 +99,6 @@ internal readonly struct OperationResult
     /// <inheritdoc/>
     public override string ToString()
     {
-        return Failed ? $"{Kind}: {Message}" : nameof(OperationResultKind.Succeeded);
+        return Failed ? $"{Kind}: {Message ?? "No additional details provided"}" : nameof(OperationResultKind.Succeeded);
     }
 }
