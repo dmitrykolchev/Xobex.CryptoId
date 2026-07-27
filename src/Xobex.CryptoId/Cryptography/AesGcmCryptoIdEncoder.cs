@@ -239,11 +239,15 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
         return Decode(urlEncodedBase64);
     }
 
-    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object? value)
     {
-        var result = TryDecode(urlEncodedBase64, out var longValue);
-        value = longValue;
-        return result;
+        if(TryDecode(urlEncodedBase64, out var longValue))
+        {
+            value = longValue;
+            return true;
+        }
+        value = null;
+        return false;
     }
 }
 

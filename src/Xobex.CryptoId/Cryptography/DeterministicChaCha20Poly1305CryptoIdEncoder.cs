@@ -239,11 +239,15 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         return Decode(urlEncodedBase64);
     }
 
-    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object? value)
     {
-        var result = TryDecode(urlEncodedBase64, out var id);
-        value = id;
-        return result;
+        if (TryDecode(urlEncodedBase64, out var id))
+        {
+            value = id;
+            return true;
+        }
+        value = null;
+        return false;
     }
 
     /// <summary>

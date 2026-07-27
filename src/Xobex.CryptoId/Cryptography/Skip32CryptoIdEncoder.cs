@@ -135,11 +135,15 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
         return Decode(urlEncodedBase64);
     }
 
-    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value)
+    bool ICryptoIdEncoder.TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object? value)
     {
-        var result = TryDecode(urlEncodedBase64, out var intValue);
-        value = intValue;
-        return result;
+        if (TryDecode(urlEncodedBase64, out var intValue))
+        {
+            value = intValue;
+            return true;
+        }
+        value = null;
+        return false;
     }
 
     string ICryptoIdEncoder.Encode(object id)

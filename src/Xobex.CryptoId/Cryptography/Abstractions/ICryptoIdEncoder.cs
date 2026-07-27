@@ -30,7 +30,7 @@ public interface ICryptoIdEncoder
     /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
     /// <param name="value">The decrypted identifier</param>
     /// <returns>Returns true is decryption was successfull</returns>
-    bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object value);
+    bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object? value);
 
     /// <summary>
     /// Gets a value indicating whether the encryption is deterministic (i.e., the same input always produces the same output).
