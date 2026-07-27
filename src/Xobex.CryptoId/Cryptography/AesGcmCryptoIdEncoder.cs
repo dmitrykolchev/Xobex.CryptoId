@@ -1,11 +1,10 @@
-// <copyright file="AesCryptoIdEncoder.cs" company="Dmitry Kolchev">
+// <copyright file="AesGcmCryptoIdEncoder.cs" company="Dmitry Kolchev">
 // Copyright (c) 2026 Dmitry Kolchev. All rights reserved.
 // See LICENSE in the project root for license information
 // </copyright>
 
 using System.Buffers.Binary;
 using System.Buffers.Text;
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -183,7 +182,7 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
                 return false;
             }
         }
-        catch(FormatException)
+        catch (FormatException)
         {
             return false;
         }
@@ -198,7 +197,7 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
             using var cipher = _pool.LeaseObject();
             cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         }
-        catch(CryptographicException)
+        catch (CryptographicException)
         {
             return false;
         }

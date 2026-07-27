@@ -46,7 +46,7 @@ internal readonly struct OperationResult
     public static readonly OperationResult Success = new(OperationResultKind.Succeeded);
 
     /// <summary>
-    /// Initializes new instance of <see cref="OperationResult"/> 
+    /// Initializes a new instance of the <see cref="OperationResult"/> 
     /// </summary>
     /// <param name="resultType"></param>
     /// <param name="message"></param>
@@ -84,10 +84,10 @@ internal readonly struct OperationResult
         Exception? ex = Kind switch
         {
             OperationResultKind.Succeeded => null,
-            OperationResultKind.FormatError => Message is null ? new FormatException() : new FormatException(Message),
-            OperationResultKind.CryptographicError => Message is null ? new CryptographicException() : new CryptographicException(Message),
-            OperationResultKind.Failed => Message is null ? new InvalidOperationException() : new InvalidOperationException(Message),
-            OperationResultKind.DisposedError => Message is null ? new ObjectDisposedException(objectName: null) : new ObjectDisposedException(objectName: null, message: Message),
+            OperationResultKind.FormatError => new FormatException(message: Message),
+            OperationResultKind.CryptographicError => new CryptographicException(message: Message),
+            OperationResultKind.Failed => new InvalidOperationException(message: Message),
+            OperationResultKind.DisposedError => new ObjectDisposedException(objectName: null, message: Message),
             _ => throw new UnreachableException(),
         };
         if (ex != null)

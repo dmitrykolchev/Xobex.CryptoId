@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using Xobex.Cryptography.Abstractions;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Xobex.Cryptography;
 
@@ -44,7 +43,6 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     private const int NonceSize = 12;
     private const int CipherTextSize = sizeof(long);
     private const int TotalSize = NonceSize + TagSize + CipherTextSize;
-
 
     // Contextual label for HKDF — isolates key material from other applications
     private static readonly byte[] HkdfInfo = "AES ID encryption v1"u8.ToArray();
@@ -169,7 +167,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
     {
         value = default;
-        if(_disposed)
+        if (_disposed)
         {
             return false;
         }
@@ -198,7 +196,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
             using var cipher = _pool.LeaseObject();
             cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         }
-        catch(CryptographicException)
+        catch (CryptographicException)
         {
             return false;
         }
