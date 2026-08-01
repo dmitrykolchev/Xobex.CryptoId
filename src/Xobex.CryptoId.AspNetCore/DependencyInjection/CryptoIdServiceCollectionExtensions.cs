@@ -58,6 +58,11 @@ public static class CryptoIdServiceCollectionExtensions
                 ex);
         }
 
+        if (salt.Length < 8)
+        {
+            throw new ArgumentException("Salt must be at least 8 bytes.", nameof(options));
+        }
+
         if (string.IsNullOrEmpty(options.Secret))
         {
             var entropy = RandomNumberGenerator.GetBytes(64);
@@ -91,15 +96,15 @@ public static class CryptoIdServiceCollectionExtensions
     /// <param name="salt"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public static IServiceCollection AddKeyedEncoder(this IServiceCollection services, string serviceKey, IdCipherAlgorithm algorithm, string secret, byte[]? salt = null)
+    public static IServiceCollection AddKeyedEncoder(this IServiceCollection services, string serviceKey, IdCipherAlgorithm algorithm, string secret, byte[] salt)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(serviceKey);
         ArgumentNullException.ThrowIfNullOrEmpty(secret);
-        if (salt is null)
+        ArgumentNullException.ThrowIfNull(salt);
+
+        if (salt.Length < 8)
         {
-            throw new ArgumentException(
-                "A stable salt is required so that previously issued IDs remain decodable after an application restart.",
-                nameof(salt));
+            throw new ArgumentException("Salt must be at least 8 bytes.", nameof(salt));
         }
         if (algorithm is IdCipherAlgorithm.Skip32 or IdCipherAlgorithm.Speck32_64)
         {
