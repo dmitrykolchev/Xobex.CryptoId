@@ -13,7 +13,7 @@ namespace Xobex.CryptoId.Json.Serialization;
 /// using an encoder from the <see cref="CryptoIdRegistry"/>.
 /// </summary>
 /// <typeparam name="T">The identifier value type handled by the converter.</typeparam>
-public abstract class CryptoIdJsonConverterBase<T>: JsonConverter<T>
+public abstract class CryptoIdJsonConverterBase<T> : JsonConverter<T>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CryptoIdJsonConverterBase{T}"/> class

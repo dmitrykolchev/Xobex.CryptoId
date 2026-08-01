@@ -75,7 +75,7 @@ public static class CryptoIdRegistry
     /// <exception cref="InvalidOperationException">Thrown when the key is already registered.</exception>
     public static void Register(string key, ICryptoIdEncoder encoder)
     {
-        if(!TryRegister(key, encoder))
+        if (!TryRegister(key, encoder))
         {
             throw new InvalidOperationException($"Cannot register encoder with key {key}");
         }
@@ -115,7 +115,7 @@ public static class CryptoIdRegistry
     /// <returns>The registered encoder cast to <see cref="ICryptoIdEncoder{T}"/>.</returns>
     /// <exception cref="ArgumentException">Thrown when no encoder is registered under the specified key.</exception>
     /// <exception cref="InvalidCastException">Thrown when the registered encoder does not handle type <typeparamref name="T"/>.</exception>
-    public static ICryptoIdEncoder<T> Get<T>(string key) where T: struct
+    public static ICryptoIdEncoder<T> Get<T>(string key) where T : struct
     {
         if (TryGet(key, out var result))
         {

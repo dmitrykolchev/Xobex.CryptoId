@@ -30,7 +30,7 @@ public sealed class Int64CryptoIdConverter : CryptoIdJsonConverterBase<Int64Cryp
     /// the encoder registered under the specified registry key.
     /// </summary>
     /// <param name="registryKey">The registry key of the encoder to use.</param>
-    public Int64CryptoIdConverter(string registryKey): base(registryKey)
+    public Int64CryptoIdConverter(string registryKey) : base(registryKey)
     {
         _encoder = (ICryptoIdEncoder<long>)CryptoIdRegistry.Get(registryKey);
     }

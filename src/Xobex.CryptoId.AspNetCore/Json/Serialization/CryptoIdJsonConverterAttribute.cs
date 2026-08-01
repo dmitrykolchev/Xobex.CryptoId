@@ -3,7 +3,6 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Xobex.CryptoId.Json.Serialization;
@@ -43,7 +42,7 @@ public class CryptoIdJsonConverterAttribute : JsonConverterAttribute
         {
             return new Int32CryptoIdConverter(Key);
         }
-        else if(typeToConvert == typeof(long))
+        else if (typeToConvert == typeof(long))
         {
             return new Int64CryptoIdConverter(Key);
         }
@@ -51,7 +50,7 @@ public class CryptoIdJsonConverterAttribute : JsonConverterAttribute
         {
             return new Int32CryptoIdConverter(Key);
         }
-        else if(typeToConvert == typeof(Int64CryptoId))
+        else if (typeToConvert == typeof(Int64CryptoId))
         {
             return new Int64CryptoIdConverter(Key);
         }
