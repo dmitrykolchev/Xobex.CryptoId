@@ -150,7 +150,7 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
             || bytesWritten != sizeof(long))
         {
             throw new FormatException(
-                $"Неверный формат Base64Url: ожидается {sizeof(long)} байт после декодирования.");
+                $"Invalid Base64Url format: expected {sizeof(long)} bytes after decoding.");
         }
 
         _cipher.Decrypt(ciphertext, plaintext);

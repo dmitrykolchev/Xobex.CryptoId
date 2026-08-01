@@ -317,12 +317,12 @@ public class Speck3264CryptoIdEncoderTests : CryptoIdTestBase
     [TestMethod]
     public void Speck32_64_MatchesOfficialTestVector()
     {
-        // Официальный вектор (NSA paper, Beaulieu et al. 2013):
+        // Official test vector (NSA paper, Beaulieu et al. 2013):
         // Key words (k0,k1,k2,k3) = (0x0100, 0x0908, 0x1110, 0x1918)
         // Plaintext (x,y) = (0x6574, 0x694c)
         // Ciphertext (x,y) = (0xa868, 0x42f2)
-        // Каждое слово закодировано little-endian при сборке byte-массива —
-        // порядок слов сохраняется, байты внутри слова свопаются.
+        // Each word is encoded little-endian when assembling the byte array —
+        // word order is preserved, bytes within each word are swapped.
 
         byte[] key =
         [

@@ -77,7 +77,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
 
         var ikm = Encoding.UTF8.GetBytes(key);
         _nonceKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, 32, salt, NonceKeyInfo);
-        // HKDF-SHA256: ikm → 32-байтный ключ для AES
+        // HKDF-SHA256: ikm → 32-byte AES key
         _keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: ikm,
@@ -159,7 +159,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         Span<byte> plaintext = stackalloc byte[CipherTextSize];
         using var cipher = _pool.LeaseObject();
         cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
-        // Read int64 with correct byte orderт
+        // Read int64 with correct byte order
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
     }
 
@@ -197,7 +197,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
         {
             return false;
         }
-        // Read int64 with correct byte orderт
+        // Read int64 with correct byte order
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
         return true;
     }

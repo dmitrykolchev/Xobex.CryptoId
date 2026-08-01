@@ -74,7 +74,7 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
         }
 
         var ikm = Encoding.UTF8.GetBytes(key);
-        // HKDF-SHA256: ikm → 32-байтный ключ для AES
+        // HKDF-SHA256: ikm → 32-byte AES key
         _keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: ikm,
@@ -196,7 +196,7 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
         {
             return OperationResult.Fail(OperationResultKind.CryptographicError, ex.Message);
         }
-        // Read int64 with correct byte orderт
+        // Read int64 with correct byte order
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
         return OperationResult.Success;
     }

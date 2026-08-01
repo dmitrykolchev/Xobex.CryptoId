@@ -13,10 +13,42 @@ Xobex.CryptoId is a high-performance .NET library designed to protect your datab
 * URL-Safe Output: Automatically converts encrypted IDs to and from URL-safe Base64 strings.
 * Allocation Optimized: Uses modern .NET memory primitives like ReadOnlySpan<char> to minimize allocations during decoding.
 
+## Overall Project Structure
+
+```
+\
+├── .github\workflows\          # Empty (no CI workflows configured yet)
+├── packages\                   # Output folder for generated .nupkg files
+├── src\                        # All source code (solution-root)
+│   ├── Xobex.CryptoId.build.props            # Shared NuGet/package metadata (imported by all packable projects)
+│   ├── Xobex.CryptoId\                       # CORE LIBRARY (NuGet: Xobex.CryptoId)
+│   │   └── Cryptography\
+│   │       ├── Abstractions\    # ICryptoIdEncoder, ICryptoIdEncoder<T>
+│   │       ├── Algo\            # Raw cipher/hash primitives (Speck, Skip32, FNV-1a hash)
+│   │       └── *.cs             # Concrete encoder implementations, factory, object pool, etc.
+│   ├── Xobex.CryptoId.AspNetCore\            # ASP.NET Core integration (NuGet: Xobex.CryptoId.AspNetCore)
+│   │   ├── AspNetCore\ModelBinding\          # Custom model binders + binder provider
+│   │   ├── DependencyInjection\              # CryptoIdOptions + AddCryptoId() extension
+│   │   ├── Json\Serialization\               # System.Text.Json converters + registry
+│   │   ├── Int32CryptoId.cs / Int64CryptoId.cs   # Type-safe ID value types
+│   ├── Xobex.CryptoId.Tests\                 # MSTest test suite (net10.0)
+│   ├── Xobex.CryptoId.Benchmarks\            # BenchmarkDotNet benchmark harness (net10.0, console)
+│   ├── Xobex.CryptoId.Sample\                # Console sample (net10.0, console)
+│   └── Xobex.CryptoId.AspNetCore.Sample\     # ASP.NET Core MVC sample app (net10.0)
+├── TestResults\                # MSTest deployment-item artifacts from prior test runs (git-ignored)
+├── Xobex.CryptoId.slnx         # Solution in the new XML-based .slnx format
+├── global.json                 # Configures Microsoft.Testing.Platform as test runner
+├── README.md                   # Extensive documentation (365 lines)
+├── LICENSE.txt                 # MIT License
+├── .editorconfig               # Style/analysis rules (C# convention-heavy)
+├── .gitignore / .gitattributes
+└── .git                        # Git repo (master branch, remote: github.com/dmitrykolchev/Xobex.CryptoId)
+```
+
 ## Skip32, Speck-32/64, Speck-64/128 Notes
 Use only for obfuscation of sequential IDs in public URLs/APIs.
 Do not use for cryptographic protection!
-
+```
 
 ------------------------------
 ## Supported Ciphers
