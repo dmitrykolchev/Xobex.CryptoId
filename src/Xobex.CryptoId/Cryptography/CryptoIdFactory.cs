@@ -3,7 +3,6 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
-using System.Security.Cryptography;
 using Xobex.Cryptography.Abstractions;
 
 namespace Xobex.Cryptography;
@@ -13,34 +12,22 @@ namespace Xobex.Cryptography;
 /// </summary>
 /// <remarks>
 /// This factory provides a convenient way to instantiate different encoder implementations
-/// based on the desired algorithm and data type. It handles algorithm-to-encoder routing
-/// and includes sensible defaults for configuration like salt.
+/// based on the desired algorithm and data type. It handles algorithm-to-encoder routing.
 /// </remarks>
 public class CryptoIdFactory
 {
-    /// <summary>
-    /// Default salt value for HKDF key derivation.
-    /// In production environments, replace this with a unique, cryptographically random value
-    /// specific to your deployment.
-    /// </summary>
-    public static readonly byte[] DefaultSalt;
-
-    static CryptoIdFactory()
-    {
-        RandomNumberGenerator.Fill(DefaultSalt = new byte[16]);
-    }
-
     /// <summary>
     /// Creates a cryptographic identifier encoder for the specified algorithm.
     /// </summary>
     /// <param name="algorithm">The cryptographic algorithm to use.</param>
     /// <param name="key">The cryptographic key material.</param>
-    /// <param name="salt">Optional salt for HKDF key derivation.</param>
+    /// <param name="salt">Salt for HKDF key derivation. Must be stable across restarts so that previously issued IDs remain decodable.</param>
     /// <returns>An encoder instance implementing <see cref="ICryptoIdEncoder"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the algorithm is not supported.</exception>
     public static ICryptoIdEncoder Create(IdCipherAlgorithm algorithm, string key, byte[]? salt = null)
     {
-        salt ??= DefaultSalt;
+        ArgumentNullException.ThrowIfNull(salt);
         ICryptoIdEncoder result = algorithm switch
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -66,11 +53,9 @@ public class CryptoIdFactory
     /// The cryptographic key material (e.g., password, API key, or random string).
     /// This will be processed through HKDF-SHA256 for key derivation.
     /// </param>
-    /// <param name="salt">
-    /// Optional salt for HKDF key derivation. If null, the default salt is used.
-    /// In production, provide a unique salt specific to your deployment.
-    /// </param>
+    /// <param name="salt">Salt for HKDF key derivation. Must be stable across restarts so that previously issued IDs remain decodable.</param>
     /// <returns>An encoder instance implementing <see cref="ICryptoIdEncoder{T}"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
     /// <exception cref="ArgumentException">
     /// Thrown when the algorithm is not supported for the specified type <typeparamref name="T"/>.
     /// </exception>
@@ -80,8 +65,8 @@ public class CryptoIdFactory
     public static ICryptoIdEncoder<T> Create<T>(IdCipherAlgorithm algorithm, string key, byte[]? salt = null)
         where T : struct
     {
+        ArgumentNullException.ThrowIfNull(salt);
         ICryptoIdEncoder result;
-        salt ??= DefaultSalt;
         if (typeof(T) == typeof(long))
         {
             result = algorithm switch

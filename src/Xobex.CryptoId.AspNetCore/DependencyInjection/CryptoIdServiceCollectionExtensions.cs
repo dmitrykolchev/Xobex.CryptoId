@@ -37,13 +37,34 @@ public static class CryptoIdServiceCollectionExtensions
     public static IServiceCollection AddCryptoId(this IServiceCollection services, CryptoIdOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
+        if (string.IsNullOrWhiteSpace(options.Salt))
+        {
+            throw new InvalidOperationException(
+                "A stable salt must be configured via CryptoIdOptions.Salt as a hexadecimal string " +
+                "(e.g., loaded from configuration or a secret store). A per-process random salt would make " +
+                "previously issued IDs undecodable after an application restart.");
+        }
+
+        byte[] salt;
+        try
+        {
+            salt = Convert.FromHexString(options.Salt);
+        }
+        catch (FormatException ex)
+        {
+            throw new ArgumentException(
+                "CryptoIdOptions.Salt must be a valid hexadecimal string.",
+                nameof(options),
+                ex);
+        }
+
         if (string.IsNullOrEmpty(options.Secret))
         {
             var entropy = RandomNumberGenerator.GetBytes(64);
             options.Secret = Convert.ToBase64String(entropy);
         }
-        CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret, options.Salt));
-        CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret, options.Salt));
+        CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret, salt));
+        CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret, salt));
 
         services.AddSingleton<ICryptoIdEncoder<int>>(serviceProvider =>
         {
@@ -74,6 +95,12 @@ public static class CryptoIdServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNullOrEmpty(serviceKey);
         ArgumentNullException.ThrowIfNullOrEmpty(secret);
+        if (salt is null)
+        {
+            throw new ArgumentException(
+                "A stable salt is required so that previously issued IDs remain decodable after an application restart.",
+                nameof(salt));
+        }
         if (algorithm is IdCipherAlgorithm.Skip32 or IdCipherAlgorithm.Speck32_64)
         {
             var encoder = CryptoIdFactory.Create<int>(algorithm, secret, salt);

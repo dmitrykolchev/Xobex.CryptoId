@@ -96,14 +96,13 @@ public class CryptoIdEncoderTests : CryptoIdTestBase
     }
 
     [TestMethod]
-    [Description("Factory should use default salt when null is provided")]
-    public void Create_WithNullSalt_UsesDefaultSalt()
+    [Description("Factory should throw when salt is null")]
+    public void Create_WithNullSalt_ThrowsArgumentNullException()
     {
-        // Arrange & Act - Should not throw
-        var encoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, TestKey, null);
-
-        // Assert
-        Assert.IsNotNull(encoder);
+        // Arrange & Act & Assert
+        ThrowsException<ArgumentNullException>(() =>
+            CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, TestKey, null)
+        );
     }
 
     [TestMethod]

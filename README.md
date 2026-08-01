@@ -184,7 +184,11 @@ dotnet add package Xobex.CryptoId.AspNetCore
 
 ```csharp
     var builder = WebApplication.CreateBuilder(args);
-    var cryptoIdOptions = new CryptoIdOptions();
+    var cryptoIdOptions = new CryptoIdOptions
+    {
+        Secret = "my-secret-key", // from configuration / secrets
+        Salt = "2b7e151628aed2a6abf7158809cf4f3c" // hex string, stable across restarts
+    };
     builder.Services.AddCryptoId(cryptoIdOptions);
 ```
 

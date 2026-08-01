@@ -27,7 +27,9 @@ public sealed class CryptoIdOptions
     public string Secret { get; set; } = null!;
 
     /// <summary>
-    /// Optional salt for HKDF key derivation
+    /// Gets or sets the salt for HKDF key derivation, specified as a hexadecimal string
+    /// (e.g. "2b7e151628aed2a6abf7158809cf4f3c"). Must be stable across restarts so that
+    /// previously issued IDs remain decodable; load it from configuration or a secret store.
     /// </summary>
-    public byte[]? Salt { get; set; }
+    public string? Salt { get; set; }
 }

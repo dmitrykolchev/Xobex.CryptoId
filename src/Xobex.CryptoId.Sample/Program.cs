@@ -13,10 +13,11 @@ internal class Program
     {
         var longId = long.MaxValue;
         var intId = int.MaxValue;
+        var salt = Convert.FromHexString("2b7e151628aed2a6abf7158809cf4f3c");
 
         foreach (var algorithm in Enum.GetValues<IdCipherAlgorithm>())
         {
-            var encoder = CryptoIdFactory.Create(algorithm, "Hello World!");
+            var encoder = CryptoIdFactory.Create(algorithm, "Hello World!", salt);
             if (encoder.IdType == typeof(long))
             {
                 var encodedString = encoder.Encode(longId);

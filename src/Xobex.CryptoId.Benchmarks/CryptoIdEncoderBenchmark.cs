@@ -38,18 +38,19 @@ public class CryptoIdEncoderBenchmark
     public void Setup()
     {
         // Initialize Encoders
-        _encoderSpeck64 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "Hello World!");
-        _encoderSpeck32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "Hello World!");
+        var salt = Convert.FromHexString("2b7e151628aed2a6abf7158809cf4f3c");
+        _encoderSpeck64 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "Hello World!", salt);
+        _encoderSpeck32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Speck32_64, "Hello World!", salt);
 
-        _encoderSkip32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Skip32, "Hello World!");
+        _encoderSkip32 = CryptoIdFactory.Create<int>(IdCipherAlgorithm.Skip32, "Hello World!", salt);
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        _encoderAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "Hello World!");
+        _encoderAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "Hello World!", salt);
 #pragma warning restore CS0618 // Type or member is obsolete
-        _encoderDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicAesGcm, "Hello World!");
-        _encoderCompactDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.CompactDeterministicAes, "Hello World!");
+        _encoderDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicAesGcm, "Hello World!", salt);
+        _encoderCompactDetAes = CryptoIdFactory.Create<long>(IdCipherAlgorithm.CompactDeterministicAes, "Hello World!", salt);
 
-        _encoderDetChaCha20 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicChaCha20Poly1305, "Hello World!");
+        _encoderDetChaCha20 = CryptoIdFactory.Create<long>(IdCipherAlgorithm.DeterministicChaCha20Poly1305, "Hello World!", salt);
 
         // Generate strings for decode
         _encodedStringSpeck64 = _encoderSpeck64.Encode(Int64Id);

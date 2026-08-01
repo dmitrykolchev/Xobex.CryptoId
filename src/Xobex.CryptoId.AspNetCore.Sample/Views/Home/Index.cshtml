@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Home Page";
 
+    var sampleSalt = Convert.FromHexString("2b7e151628aed2a6abf7158809cf4f3c");
     var algo32Default = new ImageModel()
     {
         Id = (Int64CryptoId)1234,
@@ -39,7 +40,7 @@
     <pre>
         @foreach(var algo in Enum.GetValues<IdCipherAlgorithm>())
         {
-            var encoder = CryptoIdFactory.Create(algo, "secret");
+            var encoder = CryptoIdFactory.Create(algo, "secret", sampleSalt);
             if (encoder.IdSizeInBytes == sizeof(int))
             {
                 var algo32 = new
