@@ -20,10 +20,10 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Implicit binding to specific DI encoder
+    /// Implicit binding to a specific DI encoder.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
+    /// <param name="id">The encoded identifier to decode and bind.</param>
+    /// <returns>The HTTP response.</returns>
     [HttpGet("GetItem1")]
     public IActionResult GetItem1([ModelBinder(typeof(Int32Binder))] int id)
     {
@@ -31,11 +31,11 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Default parameter binding using DI encoders
+    /// Default parameter binding using DI encoders.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="unused"></param>
-    /// <returns></returns>
+    /// <param name="id">The encoded identifier to decode and bind.</param>
+    /// <param name="unused">An additional, intentionally unused identifier.</param>
+    /// <returns>The HTTP response.</returns>
     [HttpGet("GetItem2")]
     public IActionResult GetItem2([FromQuery] Int32CryptoId id, [FromQuery] Int32CryptoId unused)
     {
@@ -55,10 +55,10 @@ public class HomeController : Controller
     public record GetItem3Request([BindRequired] Int32CryptoId id, [BindRequired] int optional);
 
     /// <summary>
-    /// Automatic binding and model state validation
+    /// Automatic binding and model state validation.
     /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
+    /// <param name="request">The request containing the identifier to bind.</param>
+    /// <returns>The HTTP response.</returns>
     [HttpGet("GetItem3")]
     public IActionResult GetItem3([FromQuery] GetItem3Request request)
     {
@@ -76,10 +76,10 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Implicit binding to DI Int64 encoder
+    /// Implicit binding to a DI Int64 encoder.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
+    /// <param name="id">The encoded identifier to decode and bind.</param>
+    /// <returns>The HTTP response.</returns>
     [HttpGet("GetItem4")]
     public IActionResult GetItem4([ModelBinder(typeof(Int64Binder))] long id)
     {
@@ -87,10 +87,10 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Default parameter binding through DI
+    /// Default parameter binding through DI.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
+    /// <param name="id">The encoded identifier to decode and bind.</param>
+    /// <returns>The HTTP response.</returns>
     [HttpGet("GetItem5")]
     public IActionResult GetItem5(Int64CryptoId id)
     {
@@ -98,11 +98,11 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Getting encoder from DI and decoding string
+    /// Getting an encoder from DI and decoding a string.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="encoder"></param>
-    /// <returns></returns>
+    /// <param name="id">The encoded identifier string.</param>
+    /// <param name="encoder">The encoder resolved from DI.</param>
+    /// <returns>The HTTP response.</returns>
     [HttpGet("GetItem6")]
     public IActionResult GetItem6(string id, [FromServices] ICryptoIdEncoder<long> encoder)
     {

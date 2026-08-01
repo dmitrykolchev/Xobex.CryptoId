@@ -49,8 +49,16 @@ public sealed class CompactDeterministicAesCryptoIdEncoder : IDisposable, ICrypt
     /// <summary>
     /// Initializes a new instance of the <see cref="CompactDeterministicAesCryptoIdEncoder"/> class.
     /// </summary>
-    /// <param name="key">The encryption key.</param>
-    /// <param name="salt">The salt for HKDF.</param>
+    /// <param name="key">
+    /// The cryptographic key material (e.g., password, API key, or random string).
+    /// Will be processed through HKDF-SHA256 to derive a 256-bit key for AES-256.
+    /// </param>
+    /// <param name="salt">
+    /// Salt value for HKDF key derivation. Should be a cryptographically random value
+    /// unique to your deployment. Typical length is 16 bytes.
+    /// </param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
     public CompactDeterministicAesCryptoIdEncoder(string key, byte[] salt)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);

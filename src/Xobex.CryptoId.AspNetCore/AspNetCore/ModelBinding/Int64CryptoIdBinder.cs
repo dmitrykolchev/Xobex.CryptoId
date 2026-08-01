@@ -4,26 +4,28 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Xobex.Cryptography.Abstractions;
 using Xobex.CryptoId.Json.Serialization;
 
 namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 
 /// <summary>
-/// A model binder for the Int64CryptoId type, which decodes a string representation of a CryptoId into
+/// A model binder for the <see cref="Int64CryptoId"/> type, which decodes a CryptoId string
+/// into an <see cref="Int64CryptoId"/> instance using the registered <see cref="ICryptoIdEncoder{T}"/>.
 /// </summary>
 public sealed class Int64CryptoIdBinder : IModelBinder
 {
     /// <summary>
-    /// Gets the singleton instance of the Int64CryptoIdBinder.
+    /// Gets the singleton instance of the <see cref="Int64CryptoIdBinder"/>.
     /// </summary>
     public static readonly Int64CryptoIdBinder Instance = new();
 
     private Int64CryptoIdBinder() { }
     /// <summary>
-    /// Binds the model by decoding the string representation of a CryptoId into an Int64CryptoId instance.
+    /// Binds the model by decoding the string representation of a CryptoId into an <see cref="Int64CryptoId"/> instance.
     /// </summary>
-    /// <param name="bindingContext"></param>
-    /// <returns></returns>
+    /// <param name="bindingContext">The model binding context.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
@@ -36,15 +38,15 @@ public sealed class Int64CryptoIdBinder : IModelBinder
 }
 
 /// <summary>
-/// A model binder for the long type, which decodes a string representation of a CryptoId into
+/// A model binder for the <see cref="long"/> type, which decodes a CryptoId string into a long value.
 /// </summary>
 public sealed class Int64Binder : IModelBinder
 {
     /// <summary>
     /// Binds the model by decoding the string representation of a CryptoId into a long value.
     /// </summary>
-    /// <param name="bindingContext"></param>
-    /// <returns></returns>
+    /// <param name="bindingContext">The model binding context.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
         var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;

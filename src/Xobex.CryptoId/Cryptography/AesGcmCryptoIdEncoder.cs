@@ -102,7 +102,7 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     /// random 96-bit nonces with n messages is approximately n²/2⁹⁷.
     /// With n = 2³² messages: P(collision) ≈ 2⁻³³, which is unacceptable for high-volume services.
     /// Alternatives: deterministic nonce counters (requires persistent state) or AES-GCM-SIV
-    /// (AesGcm is not available in BCL, but exists through Cryptography.BouncyCastle) which is
+    /// (not available in the BCL; use a library such as Cryptography.BouncyCastle), which is
     /// resistant to nonce reuse.
     /// For this use case (ID encryption), the message volume is unlikely to exceed 2²⁰ (1 million),
     /// making random nonces practically acceptable.
@@ -211,7 +211,7 @@ public sealed class AesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>,
     public int IdSizeInBytes => sizeof(long);
 
     /// <summary>
-    /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
+    /// Disposes the encoder and releases the pooled AES-GCM instances and key material.
     /// </summary>
     public void Dispose()
     {

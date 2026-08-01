@@ -18,10 +18,15 @@ namespace Xobex.CryptoId.DependencyInjection;
 public static class CryptoIdServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds CryptoId services to the specified IServiceCollection with default options.
+    /// Adds CryptoId services to the specified <see cref="IServiceCollection"/> with default options.
     /// </summary>
-    /// <param name="services"></param>
-    /// <returns></returns>
+    /// <param name="services">The service collection to add the CryptoId services to.</param>
+    /// <returns>The same service collection so that multiple calls can be chained.</returns>
+    /// <remarks>
+    /// The default options do not configure a salt, so this overload throws unless
+    /// <see cref="CryptoIdOptions.Salt"/> is set on the default options before calling.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="CryptoIdOptions.Salt"/> is not configured.</exception>
     public static IServiceCollection AddCryptoId(this IServiceCollection services)
     {
         services.AddCryptoId(new CryptoIdOptions());
@@ -29,11 +34,18 @@ public static class CryptoIdServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds CryptoId services to the specified IServiceCollection with the provided options.
+    /// Adds CryptoId services to the specified <see cref="IServiceCollection"/> with the provided options.
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
+    /// <param name="services">The service collection to add the CryptoId services to.</param>
+    /// <param name="options">The options that configure the cipher algorithms, secret and salt.</param>
+    /// <returns>The same service collection so that multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is null, empty, or whitespace.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is not a valid hexadecimal string or is shorter than 8 bytes.
+    /// </exception>
     public static IServiceCollection AddCryptoId(this IServiceCollection services, CryptoIdOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -87,15 +99,19 @@ public static class CryptoIdServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 
+    /// Registers a keyed encoder for an additional cipher configuration, identified by a service key.
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="serviceKey"></param>
-    /// <param name="algorithm"></param>
-    /// <param name="secret"></param>
-    /// <param name="salt"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <param name="services">The service collection to add the encoder to.</param>
+    /// <param name="serviceKey">The unique key used to retrieve the encoder.</param>
+    /// <param name="algorithm">The cipher algorithm to use for encoding and decoding.</param>
+    /// <param name="secret">The secret key material used for encoding and decoding.</param>
+    /// <param name="salt">The salt for HKDF key derivation, stable across restarts.</param>
+    /// <returns>The same service collection so that multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="serviceKey"/>, <paramref name="secret"/>, or <paramref name="salt"/> is null.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">Thrown when the <paramref name="serviceKey"/> is already registered.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="salt"/> is shorter than 8 bytes.</exception>
     public static IServiceCollection AddKeyedEncoder(this IServiceCollection services, string serviceKey, IdCipherAlgorithm algorithm, string secret, byte[] salt)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(serviceKey);

@@ -34,7 +34,7 @@ public static class CryptoIdRegistry
     /// called during the DI container setup to ensure that the encoder is
     /// available for all instances of the converter.
     /// </summary>
-    /// <param name="encoder"></param>
+    /// <param name="encoder">The encoder to register as the default encoder for <see cref="int"/> identifiers.</param>
     public static void Register(ICryptoIdEncoder<int> encoder)
     {
         ArgumentNullException.ThrowIfNull(encoder);
@@ -46,7 +46,7 @@ public static class CryptoIdRegistry
     /// called during the DI container setup to ensure that the encoder is
     /// available for all instances of the converter.
     /// </summary>
-    /// <param name="encoder"></param>
+    /// <param name="encoder">The encoder to register as the default encoder for <see cref="long"/> identifiers.</param>
     public static void Register(ICryptoIdEncoder<long> encoder)
     {
         ArgumentNullException.ThrowIfNull(encoder);
@@ -54,11 +54,12 @@ public static class CryptoIdRegistry
     }
 
     /// <summary>
-    ///  
+    /// Attempts to register an encoder under the specified key. Registration is skipped
+    /// if the key is already present.
     /// </summary>
-    /// <param name="key"></param>
-    /// <param name="encoder"></param>
-    /// <returns></returns>
+    /// <param name="key">The unique key for the encoder.</param>
+    /// <param name="encoder">The encoder to register.</param>
+    /// <returns>true if the encoder was registered; otherwise, false if the key already exists.</returns>
     public static bool TryRegister(string key, ICryptoIdEncoder encoder)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(key);
@@ -67,11 +68,11 @@ public static class CryptoIdRegistry
     }
 
     /// <summary>
-    /// 
+    /// Registers an encoder under the specified key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <param name="encoder"></param>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <param name="key">The unique key for the encoder.</param>
+    /// <param name="encoder">The encoder to register.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the key is already registered.</exception>
     public static void Register(string key, ICryptoIdEncoder encoder)
     {
         if(!TryRegister(key, encoder))
@@ -81,22 +82,22 @@ public static class CryptoIdRegistry
     }
 
     /// <summary>
-    ///  
+    /// Attempts to retrieve an encoder by its key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="key">The key of the encoder to retrieve.</param>
+    /// <param name="value">When this method returns, contains the encoder associated with the key, if found.</param>
+    /// <returns>true if the encoder was found; otherwise, false.</returns>
     public static bool TryGet(string key, [NotNullWhen(true)] out ICryptoIdEncoder? value)
     {
         return _registry.TryGetValue(key, out value);
     }
 
     /// <summary>
-    /// 
+    /// Retrieves an encoder by its key.
     /// </summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <param name="key">The key of the encoder to retrieve.</param>
+    /// <returns>The registered encoder.</returns>
+    /// <exception cref="ArgumentException">Thrown when no encoder is registered under the specified key.</exception>
     public static ICryptoIdEncoder Get(string key)
     {
         if (TryGet(key, out var result))
@@ -107,12 +108,13 @@ public static class CryptoIdRegistry
     }
 
     /// <summary>
-    /// 
+    /// Retrieves a strongly-typed encoder by its key.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="key"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <typeparam name="T">The identifier type handled by the encoder.</typeparam>
+    /// <param name="key">The key of the encoder to retrieve.</param>
+    /// <returns>The registered encoder cast to <see cref="ICryptoIdEncoder{T}"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when no encoder is registered under the specified key.</exception>
+    /// <exception cref="InvalidCastException">Thrown when the registered encoder does not handle type <typeparamref name="T"/>.</exception>
     public static ICryptoIdEncoder<T> Get<T>(string key) where T: struct
     {
         if (TryGet(key, out var result))

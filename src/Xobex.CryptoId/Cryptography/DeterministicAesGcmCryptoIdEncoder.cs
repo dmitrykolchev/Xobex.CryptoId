@@ -15,28 +15,26 @@ namespace Xobex.Cryptography;
 /// <summary>
 /// Provides deterministic AES-GCM encryption for encoding and decoding 64-bit (long) identifiers.
 /// </summary>
-/// <remarks>
-/// <para>
-/// This encoder uses AES-GCM (Advanced Encryption Standard in Galois/Counter Mode) to encrypt
-/// 64-bit identifiers and encode them as URL-safe Base64 strings. Each encryption operation uses
-/// a random nonce to ensure different ciphertexts for the same plaintext.
-/// </para>
-/// <para>
-/// Security Properties:
-/// - **Encryption**: AES-256-GCM with random 96-bit nonce and 128-bit authentication tag
-/// - **Key Material**: HKDF-SHA256 key derivation from user-provided key and salt
-/// - **Authentication**: Each ciphertext includes authenticated tag for integrity verification
-/// - **Randomness**: New nonce for each encryption operation (cryptographically secure)
-/// </para>
-/// <para>
-/// Nonce Collision Risk:
-/// For random 96-bit nonces, collision probability with n messages is approximately n²/2⁹⁷.
-/// With n = 2³² messages: P(collision) ≈ 2⁻³³, which is unacceptable for high-volume services.
-/// This implementation is suitable for general-purpose ID obfuscation but not for systems
-/// requiring cryptographic strength against sophisticated attackers. For higher security,
-/// consider using deterministic nonce counters or nonce-misuse-resistant modes like AES-GCM-SIV.
-/// </para>
-/// </remarks>
+    /// <remarks>
+    /// <para>
+    /// Unlike the non-deterministic <see cref="AesGcmCryptoIdEncoder"/>, this encoder derives the
+    /// nonce deterministically from the plaintext ID using HMAC-SHA256, keyed with a key that is
+    /// independent of the encryption key. The same identifier always produces the same ciphertext.
+    /// </para>
+    /// <para>
+    /// Security Properties:
+    /// - **Encryption**: AES-256-GCM with 128-bit authentication tag
+    /// - **Nonce**: Deterministic 96-bit nonce computed as the truncated HMAC-SHA256 over the plaintext ID
+    /// - **Key Material**: HKDF-SHA256 key derivation from user-provided key and salt
+    /// - **Authentication**: Each ciphertext includes an authenticated tag for integrity verification
+    /// </para>
+    /// <para>
+    /// Deterministic encryption does not hide patterns: identical IDs always produce identical
+    /// ciphertexts. This is suitable for ID obfuscation but not for encrypting variable or
+    /// sensitive data structures. Nonce reuse is not a practical concern here because the nonce
+    /// is a function of the plaintext and is unique per distinct ID.
+    /// </para>
+    /// </remarks>
 public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdEncoder<long>, ICryptoIdEncoder
 {
     private const int TagSize = 16;
@@ -212,7 +210,7 @@ public sealed class DeterministicAesGcmCryptoIdEncoder : IDisposable, ICryptoIdE
     public int IdSizeInBytes => sizeof(long);
 
     /// <summary>
-    /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
+    /// Disposes the encoder and releases the pooled AES-GCM instances and key material.
     /// </summary>
     public void Dispose()
     {

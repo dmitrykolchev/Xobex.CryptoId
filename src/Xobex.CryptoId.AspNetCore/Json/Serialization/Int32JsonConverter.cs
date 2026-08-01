@@ -26,32 +26,33 @@ public sealed class Int32JsonConverter : CryptoIdJsonConverterBase<int>
     }
 
     /// <summary>
-    /// Initializes a new instance of the Int32JsonConverter class
+    /// Initializes a new instance of the <see cref="Int32JsonConverter"/> class using
+    /// the encoder registered under the specified registry key.
     /// </summary>
-    /// <param name="registryKey">registry key of encoder</param>
+    /// <param name="registryKey">The registry key of the encoder to use.</param>
     public Int32JsonConverter(string registryKey) : base(registryKey)
     {
         _encoder = (ICryptoIdEncoder<int>)CryptoIdRegistry.Get(registryKey);
     }
 
     /// <summary>
-    /// Reads and converts the JSON representation of an Int32CryptoId to its integer value.
+    /// Reads a JSON string and decodes it to an integer value.
     /// </summary>
-    /// <param name="reader"></param>
-    /// <param name="typeToConvert"></param>
-    /// <param name="options"></param>
-    /// <returns></returns>
+    /// <param name="reader">The JSON reader.</param>
+    /// <param name="typeToConvert">The type to convert.</param>
+    /// <param name="options">The serializer options.</param>
+    /// <returns>The decoded integer value.</returns>
     public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return _encoder.Decode(reader.GetString());
     }
 
     /// <summary>
-    /// Writes the integer value of an Int32CryptoId to its JSON representation.
+    /// Writes an integer value as an encoded JSON string.
     /// </summary>
-    /// <param name="writer"></param>
-    /// <param name="value"></param>
-    /// <param name="options"></param>
+    /// <param name="writer">The JSON writer.</param>
+    /// <param name="value">The value to write.</param>
+    /// <param name="options">The serializer options.</param>
     public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(_encoder.Encode(value));

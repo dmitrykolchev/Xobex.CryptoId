@@ -9,14 +9,15 @@ using System.Text.Json.Serialization;
 namespace Xobex.CryptoId.Json.Serialization;
 
 /// <summary>
-/// 
+/// Configures JSON serialization for CryptoId values using the encoder registered
+/// under the specified key.
 /// </summary>
 public class CryptoIdJsonConverterAttribute : JsonConverterAttribute
 {
     /// <summary>
-    /// 
+    /// Initializes a new instance of the <see cref="CryptoIdJsonConverterAttribute"/> class.
     /// </summary>
-    /// <param name="key"></param>
+    /// <param name="key">The registry key of the encoder to use for serialization.</param>
     public CryptoIdJsonConverterAttribute(string key)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(key);
@@ -24,15 +25,18 @@ public class CryptoIdJsonConverterAttribute : JsonConverterAttribute
     }
 
     /// <summary>
-    /// 
+    /// Gets the registry key of the encoder used for serialization.
     /// </summary>
     public string Key { get; }
 
     /// <summary>
-    /// 
+    /// Creates the JSON converter for the specified type.
     /// </summary>
-    /// <param name="typeToConvert"></param>
-    /// <returns></returns>
+    /// <param name="typeToConvert">The type being serialized.</param>
+    /// <returns>The converter for the specified type.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <paramref name="typeToConvert"/> is not a supported type.
+    /// </exception>
     public override JsonConverter? CreateConverter(Type typeToConvert)
     {
         if (typeToConvert == typeof(int))
@@ -51,6 +55,6 @@ public class CryptoIdJsonConverterAttribute : JsonConverterAttribute
         {
             return new Int64CryptoIdConverter(Key);
         }
-        throw new InvalidOperationException($"not supperted type {typeToConvert}");
+        throw new InvalidOperationException($"not supported type {typeToConvert}");
     }
 }

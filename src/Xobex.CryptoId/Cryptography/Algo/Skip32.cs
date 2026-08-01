@@ -62,7 +62,11 @@ internal sealed class Skip32
         }
     }
 
-    /// <param name="key">Key: exactly 10 bytes (80 bits)</param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Skip32"/> cipher.
+    /// </summary>
+    /// <param name="key">The 10-byte (80-bit) encryption key.</param>
+    /// <exception cref="ArgumentException">Thrown when the key length is not exactly 10 bytes.</exception>
     public Skip32(ReadOnlySpan<byte> key)
     {
         if (key.Length != KeyLength)

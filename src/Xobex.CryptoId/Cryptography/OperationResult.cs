@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 namespace Xobex.Cryptography;
 
 /// <summary>
-/// OperationResultKind enum
+/// Represents the result kind of a cryptographic operation.
 /// </summary>
 internal enum OperationResultKind
 {
@@ -36,31 +36,31 @@ internal enum OperationResultKind
 }
 
 /// <summary>
-/// OperationResult class
+/// Represents the result of a cryptographic operation.
 /// </summary>
 internal readonly struct OperationResult
 {
     /// <summary>
-    /// Gets Success instance of <see cref="OperationResult"/>
+    /// Gets the success instance of <see cref="OperationResult"/>.
     /// </summary>
     public static readonly OperationResult Success = new(OperationResultKind.Succeeded);
 
     /// <summary>
-    /// returns faild operation result
+    /// Returns a failed operation result.
     /// </summary>
-    /// <param name="kind">failed operation result kind</param>
-    /// <param name="message">error message</param>
-    /// <returns></returns>
+    /// <param name="kind">The failed operation result kind.</param>
+    /// <param name="message">The error message.</param>
+    /// <returns>A failed <see cref="OperationResult"/>.</returns>
     public static OperationResult Fail(OperationResultKind kind, string message)
     {
         return new OperationResult(kind, message);
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OperationResult"/> 
+    /// Initializes a new instance of the <see cref="OperationResult"/> struct.
     /// </summary>
-    /// <param name="resultType"></param>
-    /// <param name="message"></param>
+    /// <param name="resultType">The kind of the operation result.</param>
+    /// <param name="message">An optional error message.</param>
     public OperationResult(OperationResultKind resultType, string? message = null)
     {
         Kind = resultType;
@@ -68,12 +68,12 @@ internal readonly struct OperationResult
     }
 
     /// <summary>
-    /// Returns true is result of succeeded operation
+    /// Returns true if the operation succeeded.
     /// </summary>
     public bool Succeeded => Kind == OperationResultKind.Succeeded;
 
     /// <summary>
-    /// Returns true is result of failed operation
+    /// Returns true if the operation failed.
     /// </summary>
     public bool Failed => Kind != OperationResultKind.Succeeded;
 
@@ -88,7 +88,7 @@ internal readonly struct OperationResult
     public string? Message { get; }
 
     /// <summary>
-    /// Throws exception if Kind is not Succeeded
+    /// Throws an exception if the operation did not succeed.
     /// </summary>
     public void ThrowIfFailed()
     {

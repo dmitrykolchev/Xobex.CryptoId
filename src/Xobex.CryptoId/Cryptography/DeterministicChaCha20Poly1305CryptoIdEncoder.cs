@@ -35,7 +35,7 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     /// </summary>
     /// <param name="key">
     /// The cryptographic key material (e.g., password, API key, or random string).
-    /// Will be processed through HKDF-SHA256 to derive a 256-bit key for AES-256.
+    /// Will be processed through HKDF-SHA256 to derive a 256-bit key for ChaCha20.
     /// </param>
     /// <param name="salt">
     /// Salt value for HKDF key derivation. Should be a cryptographically random value
@@ -66,9 +66,9 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     }
 
     /// <summary>
-    /// Gets the thread-local ChaCha20Poly1305 cipher instance.
+    /// Gets the ChaCha20Poly1305 cipher instance.
     /// </summary>
-    /// <value>The ChaCha20Poly1305 cipher instance for this thread.</value>
+    /// <value>The ChaCha20Poly1305 cipher instance.</value>
     /// <exception cref="ObjectDisposedException">Thrown if the encoder has been disposed.</exception>
     private ChaCha20Poly1305 Cipher
     {
@@ -208,7 +208,7 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     public int IdSizeInBytes => sizeof(long);
 
     /// <summary>
-    /// Disposes the encoder and releases all associated resources, including the thread-local cipher.
+    /// Disposes the encoder and releases the underlying cipher and key material.
     /// </summary>
     public void Dispose()
     {

@@ -66,10 +66,10 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     /// <remarks>
     /// Decode does not perform an integrity check—the security boundary lies entirely in the
     /// authorization check after decoding, not in the successful decoding itself.
-    /// For a 32-bit domain, a rate-limitless decode oracle makes exhaustive search of
-    /// the space feasible locally (hours, not years) on a single machine.
-    /// To create secret keys, use a cryptographically secure random sequences
-    /// (e.g., RandomNumberGenerator.GetBytes(16)) and store them securely.
+    /// Exhaustive search of the 64-bit domain is not feasible, but keep the key and salt stable
+    /// so that previously issued IDs remain decodable.
+    /// To create secret keys, use a cryptographically secure random sequence
+    /// (e.g., RandomNumberGenerator.GetBytes(16)) and store it securely.
     /// </remarks>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
@@ -136,8 +136,6 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     /// <remarks>
     /// Decode does not perform an integrity check—the security boundary lies entirely in the
     /// authorization check after decoding, not in the successful decoding itself.
-    /// For a 32-bit domain, a rate-limitless decode oracle makes exhaustive search of
-    /// the space feasible locally (hours, not years) on a single machine.
     /// </remarks>
     /// <returns>The decrypted identifier.</returns>
     /// <exception cref="FormatException">Thrown when the input is not a valid URL-safe Base64 string or contains invalid data.</exception>

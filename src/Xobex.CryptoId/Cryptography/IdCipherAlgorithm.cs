@@ -47,7 +47,9 @@ public enum IdCipherAlgorithm
     DeterministicChaCha20Poly1305,
 
     /// <summary>
-    /// Compact deterministic AES (Advanced Encryption Standard) with deterministic nonce generation.
+    /// Compact deterministic AES (Advanced Encryption Standard) using a single AES-256 ECB block
+    /// with an FNV-1a integrity check. Produces the smallest output (22 characters).
+    /// Suitable for 64-bit (long) identifiers.
     /// </summary>
     CompactDeterministicAes,
 }

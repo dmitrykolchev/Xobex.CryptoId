@@ -26,12 +26,14 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     /// </summary>
     /// <param name="key">
     /// The cryptographic key material (e.g., password, API key, or random string).
-    /// Will be processed through HKDF-SHA256 to derive an 8-byte (64-bit) key for Speck32/64.
+    /// Will be processed through HKDF-SHA256 to derive a 10-byte (80-bit) key for Skip32.
     /// </param>
     /// <param name="salt">
     /// Salt value for HKDF key derivation. Should be a cryptographically random value
     /// unique to your deployment. Typical length is 16 bytes.
     /// </param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="salt"/> is null.</exception>
     public Skip32CryptoIdEncoder(string key, byte[] salt)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);

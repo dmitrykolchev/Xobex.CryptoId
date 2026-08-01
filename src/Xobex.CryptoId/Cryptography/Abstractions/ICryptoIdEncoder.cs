@@ -29,7 +29,7 @@ public interface ICryptoIdEncoder
     /// </summary>
     /// <param name="urlEncodedBase64">The encrypted identifier as a URL-safe Base64 encoded string.</param>
     /// <param name="value">The decrypted identifier</param>
-    /// <returns>Returns true is decryption was successfull</returns>
+    /// <returns>true if the decryption was successful; otherwise, false.</returns>
     bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out object? value);
 
     /// <summary>

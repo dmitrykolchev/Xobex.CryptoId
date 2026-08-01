@@ -30,9 +30,9 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     }
 
     /// <summary>
-    /// Initializes a new instance of the Int32CryptoId struct with the specified integer value.
+    /// Initializes a new instance of the <see cref="Int32CryptoId"/> struct with the specified integer value.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value of the CryptoId.</param>
     public Int32CryptoId(int value)
     {
         Value = value;
@@ -49,38 +49,38 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     public int Value { get; }
 
     /// <summary>
-    /// Defines an explicit conversion from Int32CryptoId to int, allowing the extraction of the underlying integer value.
+    /// Defines an explicit conversion from <see cref="Int32CryptoId"/> to <see cref="int"/>, allowing the extraction of the underlying integer value.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The <see cref="Int32CryptoId"/> to convert.</param>
     public static explicit operator int(Int32CryptoId value)
     {
         return value.Value;
     }
 
     /// <summary>
-    /// Defines an explicit conversion from int to Int32CryptoId, allowing the creation of an Int32CryptoId from an integer value.
+    /// Defines an explicit conversion from <see cref="int"/> to <see cref="Int32CryptoId"/>, allowing the creation of an Int32CryptoId from an integer value.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The integer value to convert.</param>
     public static explicit operator Int32CryptoId(int value)
     {
         return new Int32CryptoId(value);
     }
 
     /// <summary>
-    /// Determines whether the current Int32CryptoId is equal to another Int32CryptoId instance.
+    /// Determines whether the current <see cref="Int32CryptoId"/> is equal to another <see cref="Int32CryptoId"/> instance.
     /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
+    /// <param name="other">The <see cref="Int32CryptoId"/> to compare with this instance.</param>
+    /// <returns>true if equal; otherwise, false.</returns>
     public bool Equals(Int32CryptoId other)
     {
         return Value == other.Value;
     }
 
     /// <summary>
-    /// Determines whether the current Int32CryptoId is equal to another object, which must be an Int32CryptoId for equality to be true.
+    /// Determines whether the current <see cref="Int32CryptoId"/> is equal to another object, which must be an Int32CryptoId for equality to be true.
     /// </summary>
-    /// <param name="obj"></param>
-    /// <returns></returns>
+    /// <param name="obj">The object to compare with this instance.</param>
+    /// <returns>true if equal; otherwise, false.</returns>
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
         if (obj is Int32CryptoId other)
@@ -91,9 +91,9 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     }
 
     /// <summary>
-    /// Returns a hash code for the current Int32CryptoId, based on its underlying integer value.
+    /// Returns a hash code for the current <see cref="Int32CryptoId"/>, based on its underlying integer value.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A hash code for the current <see cref="Int32CryptoId"/>.</returns>
     public override int GetHashCode()
     {
         return Value.GetHashCode();
@@ -106,24 +106,24 @@ public readonly struct Int32CryptoId : IEquatable<Int32CryptoId>
     }
 
     /// <summary>
-    /// Defines the equality operator for Int32CryptoId, allowing comparison
+    /// Defines the equality operator for <see cref="Int32CryptoId"/>, allowing comparison
     /// of two instances for equality based on their underlying integer values.
     /// </summary>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
+    /// <param name="left">The first <see cref="Int32CryptoId"/> to compare.</param>
+    /// <param name="right">The second <see cref="Int32CryptoId"/> to compare.</param>
+    /// <returns>true if the values are equal; otherwise, false.</returns>
     public static bool operator ==(Int32CryptoId left, Int32CryptoId right)
     {
         return left.Equals(right);
     }
 
     /// <summary>
-    /// Defines the inequality operator for Int32CryptoId, allowing comparison
+    /// Defines the inequality operator for <see cref="Int32CryptoId"/>, allowing comparison
     /// of two instances for inequality based on their underlying integer values.
     /// </summary>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns></returns>
+    /// <param name="left">The first <see cref="Int32CryptoId"/> to compare.</param>
+    /// <param name="right">The second <see cref="Int32CryptoId"/> to compare.</param>
+    /// <returns>true if the values are not equal; otherwise, false.</returns>
     public static bool operator !=(Int32CryptoId left, Int32CryptoId right)
     {
         return !left.Equals(right);

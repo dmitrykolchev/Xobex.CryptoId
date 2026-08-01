@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Xobex.CryptoId.AspNetCore.ModelBinding;
 
 /// <summary>
-/// Provides a model binder for CryptoId types (Int32CryptoId and Int64CryptoId)
-/// and their corresponding primitive types (int and long).
+/// Provides model binders for the CryptoId types (<see cref="Int32CryptoId"/> and <see cref="Int64CryptoId"/>).
 /// </summary>
 public sealed class CryptoIdBinderProvider : IModelBinderProvider
 {
@@ -17,7 +16,10 @@ public sealed class CryptoIdBinderProvider : IModelBinderProvider
     /// Gets the appropriate model binder for the specified model type.
     /// </summary>
     /// <param name="context">The model binder provider context.</param>
-    /// <returns></returns>
+    /// <returns>
+    /// The model binder for <see cref="Int32CryptoId"/> or <see cref="Int64CryptoId"/>,
+    /// or null if the model type is not a CryptoId type.
+    /// </returns>
     public IModelBinder? GetBinder(ModelBinderProviderContext context)
     {
         if (context.Metadata.ModelType == typeof(Int32CryptoId))

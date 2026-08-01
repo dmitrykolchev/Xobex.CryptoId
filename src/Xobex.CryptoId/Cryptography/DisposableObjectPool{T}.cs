@@ -28,8 +28,8 @@ internal sealed class DisposableObjectPool<T> : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="DisposableObjectPool{T}"/> class.
     /// </summary>
-    /// <param name="createObject">Factory function</param>
-    /// <param name="logError"></param>
+    /// <param name="createObject">Factory function used to create pooled objects.</param>
+    /// <param name="logError">Callback invoked when disposing a pooled object throws; may be null.</param>
     /// <param name="maxSize">Maximum number of objects to pool (default: 10). Objects beyond this limit are disposed immediately.</param>
     public DisposableObjectPool(Func<T> createObject, Action<Exception>? logError = null, int maxSize = 10)
     {
@@ -138,10 +138,10 @@ internal sealed class DisposableObjectPool<T> : IDisposable
         private readonly DisposableObjectPool<T> _owner;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ObjectInstance"/> class.
+        /// Initializes a new instance of the <see cref="ObjectInstance"/> struct.
         /// </summary>
-        /// <param name="owner"></param>
-        /// <param name="instance"></param>
+        /// <param name="owner">The pool that owns the instance.</param>
+        /// <param name="instance">The pooled object instance.</param>
         internal ObjectInstance(DisposableObjectPool<T> owner, T instance)
         {
             _owner = owner;
