@@ -50,8 +50,14 @@ public sealed class Int32Binder : IModelBinder
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
-        var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
-        if (!string.IsNullOrEmpty(value))
+        var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
+        if (value == ValueProviderResult.None)
+        {
+            return Task.CompletedTask;
+        }
+
+        var valueString = value.FirstValue;
+        if (string.IsNullOrEmpty(valueString) || !CryptoIdRegistry.Int32Encoder.TryDecode(valueString, out var decoded))
         {
             bindingContext.Result = ModelBindingResult.Success(CryptoIdRegistry.Int32Encoder.Decode(value));
         }
