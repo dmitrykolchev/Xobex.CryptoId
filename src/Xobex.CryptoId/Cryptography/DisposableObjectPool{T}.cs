@@ -17,7 +17,11 @@ namespace Xobex.Cryptography;
 internal sealed class DisposableObjectPool<T> : IDisposable
     where T : class, IDisposable
 {
+#if NET8_0
+    private readonly object _sync = new();
+#else
     private readonly Lock _sync = new();
+#endif
     private readonly Stack<T> _pool = [];
 
     private readonly Func<T> _createObject;
