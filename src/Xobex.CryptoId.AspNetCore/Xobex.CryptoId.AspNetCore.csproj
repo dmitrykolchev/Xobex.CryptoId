@@ -1,10 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OutputType>Library</OutputType>
     <RootNamespace>Xobex.CryptoId</RootNamespace>
     <IsPackable>true</IsPackable>
     <Title>Secure Database ID Obfuscation Library for ASP.NET Core</Title>
@@ -16,6 +15,10 @@
   </PropertyGroup>
 
   <Import Project="..\Xobex.CryptoId.build.props" />
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Xobex.CryptoId\Xobex.CryptoId.csproj" />

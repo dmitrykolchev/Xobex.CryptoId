@@ -3,6 +3,8 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Xobex.Cryptography;
 using Xobex.Cryptography.Abstractions;
 using Xobex.CryptoId.AspNetCore.ModelBinding;
