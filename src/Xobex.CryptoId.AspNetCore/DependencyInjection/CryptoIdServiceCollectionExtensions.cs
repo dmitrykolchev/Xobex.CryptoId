@@ -17,19 +17,50 @@ namespace Xobex.CryptoId.DependencyInjection;
 public static class CryptoIdServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds CryptoId services to the specified <see cref="IServiceCollection"/> with default options.
+    /// Adds CryptoId services to the specified <see cref="IServiceCollection"/>,
+    /// configuring <see cref="CryptoIdOptions"/> from the specified configuration section.
     /// </summary>
     /// <param name="services">The service collection to add the CryptoId services to.</param>
+    /// <param name="section">The configuration section containing the CryptoId options
+    /// (<c>Secret</c>, <c>Salt</c>, <c>Int32Algorithm</c>, <c>Int64Algorithm</c>).</param>
     /// <returns>The same service collection so that multiple calls can be chained.</returns>
-    /// <remarks>
-    /// The default options do not configure a salt, so this overload throws unless
-    /// <see cref="CryptoIdOptions.Salt"/> is set on the default options before calling.
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">Thrown when <see cref="CryptoIdOptions.Salt"/> is not configured.</exception>
-    public static IServiceCollection AddCryptoId(this IServiceCollection services)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="section"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is null, empty, or whitespace.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is not a valid hexadecimal string or is shorter than 8 bytes,
+    /// or when <see cref="CryptoIdOptions.Secret"/> is null or empty.
+    /// </exception>
+    public static IServiceCollection AddCryptoId(this IServiceCollection services, IConfigurationSection section)
     {
-        services.AddCryptoId(new CryptoIdOptions());
-        return services;
+        ArgumentNullException.ThrowIfNull(section);
+        var options = new CryptoIdOptions();
+        section.Bind(options);
+        return services.AddCryptoId(options);
+    }
+
+    /// <summary>
+    /// Adds CryptoId services to the specified <see cref="IServiceCollection"/>,
+    /// configuring <see cref="CryptoIdOptions"/> with the provided delegate.
+    /// </summary>
+    /// <param name="services">The service collection to add the CryptoId services to.</param>
+    /// <param name="configure">The delegate used to configure the <see cref="CryptoIdOptions"/>.</param>
+    /// <returns>The same service collection so that multiple calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is null, empty, or whitespace.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is not a valid hexadecimal string or is shorter than 8 bytes,
+    /// or when <see cref="CryptoIdOptions.Secret"/> is null or empty.
+    /// </exception>
+    public static IServiceCollection AddCryptoId(this IServiceCollection services, Action<CryptoIdOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        var options = new CryptoIdOptions();
+        configure(options);
+        return services.AddCryptoId(options);
     }
 
     /// <summary>
