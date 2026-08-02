@@ -14,11 +14,10 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         var salt = "2b7e151628aed2a6abf7158809cf4f3c";
-        var cryptoIdOptions = new CryptoIdOptions { Salt = salt };
+        var cryptoIdOptions = new CryptoIdOptions { Secret = "my-secret-key", Salt = salt };
         builder.Services.AddCryptoId(cryptoIdOptions);
         builder.Services.AddKeyedEncoder("DetAes", IdCipherAlgorithm.CompactDeterministicAes, "my_secret", Convert.FromHexString(salt));
 
-        Console.WriteLine($"cryptoIdOptions secret: {cryptoIdOptions.Secret}");
         // Add services to the container.
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddControllersWithViews();

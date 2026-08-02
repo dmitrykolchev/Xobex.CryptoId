@@ -193,6 +193,7 @@ multi-instance deployments.
 | `CryptoIdFactory.Create(algorithm, key)` | optional salt (random default) | `ArgumentNullException` if salt is null |
 | `CryptoIdFactory.Create<T>(algorithm, key)` | optional salt (random default) | `ArgumentNullException` if salt is null |
 | `AddCryptoId(CryptoIdOptions)` | optional salt | `InvalidOperationException` if `CryptoIdOptions.Salt` is not set |
+| `AddCryptoId(CryptoIdOptions)` | random secret generated when `Secret` empty | `ArgumentException` if `CryptoIdOptions.Secret` is not set |
 | `AddKeyedEncoder(..., byte[] salt)` | optional `byte[]? salt` | `byte[] salt` is mandatory |
 
 **How to migrate:** provide a **stable, deployment-specific** salt. In `CryptoIdOptions` it is

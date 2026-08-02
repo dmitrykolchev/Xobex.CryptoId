@@ -3,7 +3,6 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
-using System.Security.Cryptography;
 using Xobex.Cryptography;
 using Xobex.Cryptography.Abstractions;
 using Xobex.CryptoId.AspNetCore.ModelBinding;
@@ -44,7 +43,8 @@ public static class CryptoIdServiceCollectionExtensions
     /// Thrown when <see cref="CryptoIdOptions.Salt"/> is null, empty, or whitespace.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is not a valid hexadecimal string or is shorter than 8 bytes.
+    /// Thrown when <see cref="CryptoIdOptions.Salt"/> is not a valid hexadecimal string or is shorter than 8 bytes,
+    /// or when <see cref="CryptoIdOptions.Secret"/> is null or empty.
     /// </exception>
     public static IServiceCollection AddCryptoId(this IServiceCollection services, CryptoIdOptions options)
     {
@@ -77,9 +77,13 @@ public static class CryptoIdServiceCollectionExtensions
 
         if (string.IsNullOrEmpty(options.Secret))
         {
-            var entropy = RandomNumberGenerator.GetBytes(64);
-            options.Secret = Convert.ToBase64String(entropy);
+            throw new ArgumentException(
+                "A stable secret must be configured via CryptoIdOptions.Secret " +
+                "(e.g., loaded from configuration or a secret store). A per-process random " +
+                "secret would make previously issued IDs undecodable after an application restart.",
+                nameof(options));
         }
+
         CryptoIdRegistry.Register(CryptoIdFactory.Create<int>(options.Int32Algorithm, options.Secret, salt));
         CryptoIdRegistry.Register(CryptoIdFactory.Create<long>(options.Int64Algorithm, options.Secret, salt));
 

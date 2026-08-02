@@ -22,7 +22,8 @@ public sealed class CryptoIdOptions
     /// </summary>
     public IdCipherAlgorithm Int64Algorithm { get; set; } = IdCipherAlgorithm.Speck64_128;
     /// <summary>
-    /// Gets or sets the secret key used for encoding and decoding IDs. If not provided, a random secret will be generated.
+    /// Gets or sets the secret key used for encoding and decoding IDs. Must be stable across restarts so that
+    /// previously issued IDs remain decodable; load it from configuration or a secret store.
     /// </summary>
     public string Secret { get; set; } = null!;
 
