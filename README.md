@@ -48,7 +48,6 @@ Xobex.CryptoId is a high-performance .NET library designed to protect your datab
 ## Skip32, Speck-32/64, Speck-64/128 Notes
 Use only for obfuscation of sequential IDs in public URLs/APIs.
 Do not use for cryptographic protection!
-```
 
 ------------------------------
 ## Supported Ciphers
