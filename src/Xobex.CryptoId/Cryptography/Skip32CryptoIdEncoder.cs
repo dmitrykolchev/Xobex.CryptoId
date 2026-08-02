@@ -70,40 +70,38 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     /// <exception cref="FormatException">Invalid Base64Url format.</exception>
     public int Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
-        Span<byte> ciphertext = stackalloc byte[sizeof(int)];
-
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
-            || bytesWritten != sizeof(int))
-        {
-            throw new FormatException(
-                $"Invalid Base64Url format: expected {sizeof(int)} bytes after decoding.");
-        }
-
-        var decrypted = _cipher.Decrypt(MemoryMarshal.Cast<byte, uint>(ciphertext)[0]);
-
-        return unchecked((int)decrypted);
+        TryDecodeInternal(urlEncodedBase64, out var value).ThrowIfFailed();
+        return value;
     }
 
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out int value)
     {
-        Span<byte> ciphertext = stackalloc byte[sizeof(int)];
+        return TryDecodeInternal(urlEncodedBase64, out value).Succeeded;
+    }
+
+    private OperationResult TryDecodeInternal(ReadOnlySpan<char> text, out int value)
+    {
         value = default;
+
+        Span<byte> ciphertext = stackalloc byte[sizeof(int)];
+
         try
         {
-            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
+            if (!Base64Url.TryDecodeFromChars(text, ciphertext, out var bytesWritten)
                 || bytesWritten != sizeof(int))
             {
-                return false;
+                return OperationResult.Fail(OperationResultKind.FormatError, $"Invalid Base64Url format: expected {sizeof(int)} bytes after decoding.");
             }
         }
-        catch (FormatException)
+        catch (FormatException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.FormatError, ex.Message);
         }
+
         var decrypted = _cipher.Decrypt(MemoryMarshal.Cast<byte, uint>(ciphertext)[0]);
         value = unchecked((int)decrypted);
-        return true;
+        return OperationResult.Success;
     }
 
     /// <summary>

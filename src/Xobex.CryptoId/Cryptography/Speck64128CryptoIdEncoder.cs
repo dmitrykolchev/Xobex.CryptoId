@@ -141,51 +141,47 @@ public sealed class Speck64128CryptoIdEncoder : ICryptoIdEncoder<long>, ICryptoI
     /// <exception cref="FormatException">Thrown when the input is not a valid URL-safe Base64 string or contains invalid data.</exception>
     public long Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
-        Span<byte> ciphertext = stackalloc byte[sizeof(long)];
-        Span<byte> plaintext = stackalloc byte[sizeof(long)];
-
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
-            || bytesWritten != sizeof(long))
-        {
-            throw new FormatException(
-                $"Invalid Base64Url format: expected {sizeof(long)} bytes after decoding.");
-        }
-
-        _cipher.Decrypt(ciphertext, plaintext);
-
-        return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        TryDecodeInternal(urlEncodedBase64, out var value).ThrowIfFailed();
+        return value;
     }
 
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
     {
+        return TryDecodeInternal(urlEncodedBase64, out value).Succeeded;
+    }
+
+    private OperationResult TryDecodeInternal(ReadOnlySpan<char> text, out long value)
+    {
+        value = default;
+
         Span<byte> ciphertext = stackalloc byte[sizeof(long)];
         Span<byte> plaintext = stackalloc byte[sizeof(long)];
 
-        value = default;
         try
         {
-            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, ciphertext, out var bytesWritten)
+            if (!Base64Url.TryDecodeFromChars(text, ciphertext, out var bytesWritten)
                 || bytesWritten != sizeof(long))
             {
-                return false;
+                return OperationResult.Fail(OperationResultKind.FormatError, $"Invalid Base64Url format: expected {sizeof(long)} bytes after decoding.");
             }
         }
-        catch (FormatException)
+        catch (FormatException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.FormatError, ex.Message);
         }
 
         try
         {
             _cipher.Decrypt(ciphertext, plaintext);
         }
-        catch (ArgumentException)
+        catch (ArgumentException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.Failed, ex.Message);
         }
+
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
-        return true;
+        return OperationResult.Success;
     }
 
     /// <inheritdoc/>

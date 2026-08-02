@@ -127,36 +127,23 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     /// <param name="urlEncodedBase64">encrypted id</param>
     /// <returns>The original 64-bit identifier.</returns>
     /// <exception cref="FormatException">Thrown if the input is not a valid URL-safe Base64 string.</exception>
+    /// <exception cref="CryptographicException">Thrown when the authentication tag is invalid or the input is corrupted.</exception>
     public long Decode(ReadOnlySpan<char> urlEncodedBase64)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-
-        const int ciphertextSize = sizeof(long);
-        const int totalSize = NonceSize + TagSize + ciphertextSize;
-
-        Span<byte> buffer = stackalloc byte[totalSize];
-
-        // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-        if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != totalSize)
-        {
-            throw new FormatException($"Invalid Base64Url format: expected {totalSize} bytes after decoding.");
-        }
-
-        ReadOnlySpan<byte> nonce = buffer[..NonceSize];
-        ReadOnlySpan<byte> tag = buffer.Slice(NonceSize, TagSize);
-        ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, ciphertextSize);
-
-        Span<byte> plaintext = stackalloc byte[ciphertextSize];
-        using var cipher = _pool.LeaseObject();
-        cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
-        // Read int64 with correct byte order
-        return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
+        TryDecodeInternal(urlEncodedBase64, out var value).ThrowIfFailed();
+        return value;
     }
 
     /// <inheritdoc/>
     public bool TryDecode(ReadOnlySpan<char> urlEncodedBase64, out long value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        return TryDecodeInternal(urlEncodedBase64, out value).Succeeded;
+    }
+
+    private OperationResult TryDecodeInternal(ReadOnlySpan<char> text, out long value)
+    {
         value = default;
 
         Span<byte> buffer = stackalloc byte[TotalSize];
@@ -164,14 +151,14 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         try
         {
             // Decode URL-Base64 back to bytes on the stack in a single pass without allocations
-            if (!Base64Url.TryDecodeFromChars(urlEncodedBase64, buffer, out var bytesWritten) || bytesWritten != TotalSize)
+            if (!Base64Url.TryDecodeFromChars(text, buffer, out var bytesWritten) || bytesWritten != TotalSize)
             {
-                return false;
+                return OperationResult.Fail(OperationResultKind.FormatError, $"Invalid Base64Url format: expected {TotalSize} bytes after decoding.");
             }
         }
-        catch (FormatException)
+        catch (FormatException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.FormatError, ex.Message);
         }
 
         ReadOnlySpan<byte> nonce = buffer[..NonceSize];
@@ -184,13 +171,14 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
             using var cipher = _pool.LeaseObject();
             cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         }
-        catch (CryptographicException)
+        catch (CryptographicException ex)
         {
-            return false;
+            return OperationResult.Fail(OperationResultKind.CryptographicError, ex.Message);
         }
+
         // Read int64 with correct byte order
         value = BinaryPrimitives.ReadInt64LittleEndian(plaintext);
-        return true;
+        return OperationResult.Success;
     }
 
     /// <inheritdoc/>
