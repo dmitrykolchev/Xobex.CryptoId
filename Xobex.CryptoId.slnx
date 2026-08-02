@@ -12,5 +12,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="src/Xobex.CryptoId.Tests/Xobex.CryptoId.Tests.csproj" />
+    <Project Path="src/Xobex.CryptoId.AspNetCore.Tests/Xobex.CryptoId.AspNetCore.Tests.csproj" />
   </Folder>
 </Solution>
