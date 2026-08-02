@@ -27,6 +27,10 @@ public class HomeController : Controller
     [HttpGet("GetItem1")]
     public IActionResult GetItem1([ModelBinder(typeof(Int32Binder))] int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         return Ok($"int id = {id}");
     }
 
@@ -39,6 +43,10 @@ public class HomeController : Controller
     [HttpGet("GetItem2")]
     public IActionResult GetItem2([FromQuery] Int32CryptoId id, [FromQuery] Int32CryptoId unused)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         if (!HttpContext.Request.Query.ContainsKey(nameof(id)))
         {
             Console.WriteLine($"Hasn't query paramer - {nameof(id)}");
@@ -62,6 +70,10 @@ public class HomeController : Controller
     [HttpGet("GetItem3")]
     public IActionResult GetItem3([FromQuery] GetItem3Request request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         if (!HttpContext.Request.Query.ContainsKey(nameof(request.id)))
         {
             Console.WriteLine($"Hasn't query paramer - {nameof(request.id)}");
@@ -83,6 +95,10 @@ public class HomeController : Controller
     [HttpGet("GetItem4")]
     public IActionResult GetItem4([ModelBinder(typeof(Int64Binder))] long id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         return Ok($"long id = {id}");
     }
 
@@ -94,6 +110,10 @@ public class HomeController : Controller
     [HttpGet("GetItem5")]
     public IActionResult GetItem5(Int64CryptoId id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         return Ok($"Int64CryptoId id = {id.Value}");
     }
 
@@ -106,7 +126,11 @@ public class HomeController : Controller
     [HttpGet("GetItem6")]
     public IActionResult GetItem6(string id, [FromServices] ICryptoIdEncoder<long> encoder)
     {
-        return Ok($"string id (encoded) = {id}, long id (decoded) = {encoder.Decode(id)}");
+        if (encoder.TryDecode(id, out var decoded))
+        {
+            return Ok($"string id (encoded) = {id}, long id (decoded) = {decoded}");
+        }
+        return BadRequest("Invalid CryptoId");
     }
 
     public IActionResult Privacy()

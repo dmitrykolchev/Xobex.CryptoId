@@ -29,11 +29,22 @@ public sealed class Int32CryptoIdBinder : IModelBinder
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {
-        var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue;
-        if (!string.IsNullOrEmpty(value))
+        var value = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
+        if (value == ValueProviderResult.None)
         {
-            bindingContext.Result = ModelBindingResult.Success(new Int32CryptoId(CryptoIdRegistry.Int32Encoder.Decode(value)));
+            return Task.CompletedTask;
         }
+
+        var valueString = value.FirstValue;
+        if (string.IsNullOrEmpty(valueString) || !CryptoIdRegistry.Int32Encoder.TryDecode(valueString, out var decoded))
+        {
+            bindingContext.ModelState.TryAddModelError(
+                bindingContext.ModelName,
+                $"The value '{valueString}' is not a valid CryptoId.");
+            return Task.CompletedTask;
+        }
+
+        bindingContext.Result = ModelBindingResult.Success(new Int32CryptoId(decoded));
         return Task.CompletedTask;
     }
 }
@@ -59,8 +70,13 @@ public sealed class Int32Binder : IModelBinder
         var valueString = value.FirstValue;
         if (string.IsNullOrEmpty(valueString) || !CryptoIdRegistry.Int32Encoder.TryDecode(valueString, out var decoded))
         {
-            bindingContext.Result = ModelBindingResult.Success(CryptoIdRegistry.Int32Encoder.Decode(value));
+            bindingContext.ModelState.TryAddModelError(
+                bindingContext.ModelName,
+                $"The value '{valueString}' is not a valid CryptoId.");
+            return Task.CompletedTask;
         }
+
+        bindingContext.Result = ModelBindingResult.Success(decoded);
         return Task.CompletedTask;
     }
 }
