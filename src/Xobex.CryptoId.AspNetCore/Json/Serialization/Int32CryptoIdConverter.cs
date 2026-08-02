@@ -22,7 +22,7 @@ public sealed class Int32CryptoIdConverter : CryptoIdJsonConverterBase<Int32Cryp
     /// </summary>
     public Int32CryptoIdConverter()
     {
-        _encoder = CryptoIdRegistry.Int32Encoder ?? throw new InvalidOperationException("encoder not registered");
+        _encoder = CryptoIdRegistry.Int32Encoder;
     }
 
     /// <summary>
