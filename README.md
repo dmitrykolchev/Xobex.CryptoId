@@ -178,6 +178,39 @@ dotnet add package Xobex.CryptoId.AspNetCore
 ```
 
 ------------------------------
+## Version 2.0 Breaking Change: Salt Is Now Mandatory
+
+Starting with **v2.0** the salt is a required parameter for all encoders. The implicit
+per-process random default salt (`CryptoIdFactory.DefaultSalt`) was removed from the public API.
+
+**Why:** the old default salt was generated once per process and changed on every restart,
+which made previously issued IDs undecodable after an application restart or in
+multi-instance deployments.
+
+**What changed:**
+
+| API | Before | After |
+|---|---|---|
+| `CryptoIdFactory.Create(algorithm, key)` | optional salt (random default) | `ArgumentNullException` if salt is null |
+| `CryptoIdFactory.Create<T>(algorithm, key)` | optional salt (random default) | `ArgumentNullException` if salt is null |
+| `AddCryptoId(CryptoIdOptions)` | optional salt | `InvalidOperationException` if `CryptoIdOptions.Salt` is not set |
+| `AddKeyedEncoder(..., byte[] salt)` | optional `byte[]? salt` | `byte[] salt` is mandatory |
+
+**How to migrate:** provide a **stable, deployment-specific** salt. In `CryptoIdOptions` it is
+specified as a hexadecimal string; in `CryptoIdFactory` and `AddKeyedEncoder` as a `byte[]`.
+The salt must be at least **8 bytes** (16–32 bytes / 32–64 hex characters recommended) and
+identical across restarts and replicas:
+
+```csharp
+var cryptoIdOptions = new CryptoIdOptions
+{
+    Secret = "my-secret-key",                        // from configuration / secrets
+    Salt = "2b7e151628aed2a6abf7158809cf4f3c"        // hex string, stable across restarts
+};
+builder.Services.AddCryptoId(cryptoIdOptions);
+```
+
+------------------------------
 ## Quick Start
 
 ### Adding to the DI container
@@ -253,8 +286,9 @@ Recommended for public-facing web APIs where maximum cryptographic strength is r
 
 ```csharp
 using Xobex.CryptoId;
-// Initialize the encoder with a secure 32-byte key
-ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "your secret phrase");
+// Initialize the encoder with a secure key and a stable salt (byte[])
+var salt = Convert.FromHexString("2b7e151628aed2a6abf7158809cf4f3c");
+ICryptoIdEncoder<long> encoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.AesGcm, "your secret phrase", salt);
 long originalId = 42026;
 // Encrypt the ID to a URL-safe Base64 string
 string encodedToken = encoder.Encode(originalId); 
@@ -269,8 +303,9 @@ Recommended for internal microservices, high-throughput systems, or scenarios re
 
 ```csharp
 using Xobex.CryptoId;
-// Initialize Speck-64/128 (16-byte key) for 64-bit long ID;
-ICryptoIdEncoder<long> speckEncoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "your secret phrase");
+// Initialize Speck-64/128 (16-byte key) for 64-bit long ID with a stable salt (byte[])
+var salt = Convert.FromHexString("2b7e151628aed2a6abf7158809cf4f3c");
+ICryptoIdEncoder<long> speckEncoder = CryptoIdFactory.Create<long>(IdCipherAlgorithm.Speck64_128, "your secret phrase", salt);
 long databaseId = 987654321;
 // Extremely fast encryption and URL-safe encoding
 string encodedToken = speckEncoder.Encode(databaseId);
