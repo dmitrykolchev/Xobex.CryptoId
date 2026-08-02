@@ -26,7 +26,8 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
     private static readonly byte[] HkdfInfo = "ChaCha20Poly1305 ID encryption v1"u8.ToArray();
     private static readonly byte[] NonceKeyInfo = "Xobex.ChaCha20Poly1305.CryptoId.nonce.v1"u8.ToArray();
 
-    private readonly ChaCha20Poly1305 _cipher;
+    private readonly DisposableObjectPool<ChaCha20Poly1305> _pool;
+    private readonly byte[] _keyMaterial;
     private readonly byte[] _nonceKey;
     private bool _disposed;
 
@@ -55,29 +56,20 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         var ikm = Encoding.UTF8.GetBytes(key);
         _nonceKey = HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, 32, salt, NonceKeyInfo);
         // HKDF-SHA256: ikm → 32-byte ChaCha20 key
-        var keyMaterial = HKDF.DeriveKey(
+        _keyMaterial = HKDF.DeriveKey(
             hashAlgorithmName: HashAlgorithmName.SHA256,
             ikm: ikm,
             outputLength: 32,
             salt: salt,
             info: HkdfInfo);
-        _cipher = new ChaCha20Poly1305(keyMaterial);
+        _pool = new DisposableObjectPool<ChaCha20Poly1305>(CreatePooledObject);
         CryptographicOperations.ZeroMemory(ikm);
     }
 
-    /// <summary>
-    /// Gets the ChaCha20Poly1305 cipher instance.
-    /// </summary>
-    /// <value>The ChaCha20Poly1305 cipher instance.</value>
-    /// <exception cref="ObjectDisposedException">Thrown if the encoder has been disposed.</exception>
-    private ChaCha20Poly1305 Cipher
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ChaCha20Poly1305 CreatePooledObject()
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            return _cipher;
-        }
+        return new ChaCha20Poly1305(_keyMaterial);
     }
 
     /// <summary>
@@ -125,7 +117,8 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
 
         var tag = buffer.Slice(NonceSize, TagSize);
 
-        Cipher.Encrypt(nonce, idBytes, idBytes, tag);
+        using var cipher = _pool.LeaseObject();
+        cipher.Instance.Encrypt(nonce, idBytes, idBytes, tag);
     }
 
     /// <summary>
@@ -154,7 +147,8 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         ReadOnlySpan<byte> ciphertext = buffer.Slice(NonceSize + TagSize, ciphertextSize);
 
         Span<byte> plaintext = stackalloc byte[ciphertextSize];
-        Cipher.Decrypt(nonce, ciphertext, tag, plaintext);
+        using var cipher = _pool.LeaseObject();
+        cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         // Read int64 with correct byte order
         return BinaryPrimitives.ReadInt64LittleEndian(plaintext);
     }
@@ -187,9 +181,10 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
         Span<byte> plaintext = stackalloc byte[CipherTextSize];
         try
         {
-            Cipher.Decrypt(nonce, ciphertext, tag, plaintext);
+            using var cipher = _pool.LeaseObject();
+            cipher.Instance.Decrypt(nonce, ciphertext, tag, plaintext);
         }
-        catch(CryptographicException)
+        catch (CryptographicException)
         {
             return false;
         }
@@ -217,7 +212,8 @@ public sealed class DeterministicChaCha20Poly1305CryptoIdEncoder : ICryptoIdEnco
             return;
         }
         _disposed = true;
-        _cipher.Dispose();
+        _pool.Dispose();
+        CryptographicOperations.ZeroMemory(_keyMaterial);
         CryptographicOperations.ZeroMemory(_nonceKey);
     }
 
