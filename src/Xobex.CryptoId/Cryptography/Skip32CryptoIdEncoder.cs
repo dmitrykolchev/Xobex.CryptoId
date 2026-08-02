@@ -3,8 +3,8 @@
 // See LICENSE in the project root for license information
 // </copyright>
 
+using System.Buffers.Binary;
 using System.Buffers.Text;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using Xobex.Cryptography.Abstractions;
@@ -99,7 +99,7 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
             return OperationResult.Fail(OperationResultKind.FormatError, ex.Message);
         }
 
-        var decrypted = _cipher.Decrypt(MemoryMarshal.Cast<byte, uint>(ciphertext)[0]);
+        var decrypted = _cipher.Decrypt(BinaryPrimitives.ReadUInt32LittleEndian(ciphertext));
         value = unchecked((int)decrypted);
         return OperationResult.Success;
     }
@@ -111,8 +111,8 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     /// <returns>encrypted and encoded base64 string</returns>
     public string Encode(int id)
     {
-        var encrypted = _cipher.Encrypt(unchecked((uint)id));
-        var ciphertext = MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateReadOnlySpan<uint>(ref encrypted, 1));
+        Span<byte> ciphertext = stackalloc byte[sizeof(uint)];
+        BinaryPrimitives.WriteUInt32LittleEndian(ciphertext, _cipher.Encrypt(unchecked((uint)id)));
         return Base64Url.EncodeToString(ciphertext);
     }
 
@@ -125,8 +125,8 @@ public sealed class Skip32CryptoIdEncoder : ICryptoIdEncoder<int>, ICryptoIdEnco
     /// <returns>true if the encoding was successful; otherwise, false.</returns>
     public bool TryEncode(int id, Span<char> destination, out int charsWritten)
     {
-        var encrypted = _cipher.Encrypt(unchecked((uint)id));
-        var ciphertext = MemoryMarshal.Cast<uint, byte>(MemoryMarshal.CreateReadOnlySpan<uint>(ref encrypted, 1));
+        Span<byte> ciphertext = stackalloc byte[sizeof(uint)];
+        BinaryPrimitives.WriteUInt32LittleEndian(ciphertext, _cipher.Encrypt(unchecked((uint)id)));
         return Base64Url.TryEncodeToChars(ciphertext, destination, out charsWritten);
     }
 
